@@ -1,15 +1,23 @@
-dataset,weather,source_or_project_url,notes
-Rain14000,rain,https://xueyangfu.github.io/projects/cvpr2017.html,Original project page; obtain the authorized archive from its current instructions
-Rain800,rain,https://github.com/hezhangsprinter/ID-CGAN,Project repository; check README for data links
-Rain100H,rain,https://github.com/hongwang01/Video-and-Single-Image-Deraining,Original repository; confirm RainTrainH/Rain1800 naming and split
-Rain100L,rain,https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html,Project page; verify current download availability
-Rain1200,rain,https://github.com/hezhangsprinter,Author organization profile; locate DID-MDN source instructions
-Rain12,rain,https://yu-li.github.io/,Research project page; locate original dataset link
-Raindrop,raindrop,https://github.com/rui1996/DeRaindrop,Author repository; check dataset terms and split
-Snow100K-L,snow,https://sites.google.com/view/yunfuliu/desnownet,Author project; original Snow100K release
-Snow100K-M,snow,https://sites.google.com/view/yunfuliu/desnownet,Author project; original Snow100K release
-Snow100K-S,snow,https://sites.google.com/view/yunfuliu/desnownet,Author project; original Snow100K release
-CSD,snow,https://github.com/weitingchen83/ICCV2021-Single-Image-Desnowing-HDCWNet,Author project; comprehensive snow dataset
-RESIDE ITS,haze,https://sites.google.com/view/reside-dehaze-datasets/,Official RESIDE project page; access terms may apply
-RESIDE OTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,Official RESIDE project page; access terms may apply
-RESIDE HSTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,Official RESIDE project page; access terms may apply
+dataset,weather,source_or_project_url,availability,paired_restoration,notes
+Rain14000,rain,https://xueyangfu.github.io/projects/cvpr2017.html,owner project page,yes,Original archive instructions; 11200 train and 2800 test AIR40K subset
+Rain800,rain,https://github.com/hezhangsprinter/ID-CGAN,project repository,yes,Check README for current data archive
+Rain100H,rain,https://github.com/hongwang01/Video-and-Single-Image-Deraining,original repository,yes,Verify RainTrainH or Rain1800 naming
+Rain100L,rain,https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html,project page,yes,Verify current download availability
+Rain1200,rain,https://github.com/hezhangsprinter,author organization,yes,Locate DID-MDN resource instructions
+Rain12,rain,https://yu-li.github.io/,research project page,yes,Locate original archive
+Raindrop,raindrop,https://github.com/rui1996/DeRaindrop,owner link documented (Google Drive),yes,861 train; Test-A 58 is a subset of Test-B 239; AIR40K reports 307 and needs archive-specific audit
+Snow100K-L,snow,https://sites.google.com/view/yunfuliu/desnownet,owner project page and archives,yes,16801 test pairs; already part of AIR40K list
+Snow100K-M,snow,https://sites.google.com/view/yunfuliu/desnownet,owner project page and archives,yes,16588 test pairs; already part of AIR40K list
+Snow100K-S,snow,https://sites.google.com/view/yunfuliu/desnownet,owner project page and archives,yes,16611 test pairs; already part of AIR40K list
+CSD,snow,https://github.com/weitingchen83/ICCV2021-Single-Image-Desnowing-HDCWNet,author project,yes,Comprehensive snow dataset
+RESIDE ITS,haze,https://sites.google.com/view/reside-dehaze-datasets/,official project page,yes,Haze dataset; access terms may apply
+RESIDE OTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,official project page,yes,Haze dataset; access terms may apply
+RESIDE HSTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,official project page,yes,Haze dataset; access terms may apply
+Rain200H,rain,https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html,documented project page,yes,1800 train and 200 test pairs; synthetic heavy rain
+Rain200L,rain,https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html,documented project page,yes,1800 train and 200 test pairs; synthetic light rain
+Outdoor-Rain,rain_haze,https://github.com/sunshangquan/Histoformer,documented benchmark setup,yes,9000 training pairs; test protocol differs (Test1 often 750; some reports use 1500)
+RainCityscapes,rain_haze,https://openaccess.thecvf.com/content_CVPR_2019/html/Hu_Single_Image_Rain_Removal_Using_Classification_Guided_Network_CVPR_2019_paper.html,paper-defined paired dataset,yes,9432 train and 1188 test variants from 262 and 33 scenes; check Cityscapes-derived access terms
+CDD-11,mixed_weather,https://github.com/gy65896/OneRestore,owner repository links Hugging Face archive,yes,11 degradation types include low-light-only and mixed composites; filter to relevant weather labels
+SPA-Data,rain,https://stevewongv.github.io/derain-project.html,original project page,yes,Real-world rain; 1000 test pairs; train sample count depends on patch extraction protocol
+RESIDE-S,sand_dust,https://openaccess.thecvf.com/content/CVPR2025W/WiCV/html/Mishra_Dust_to_Detail_Restoring_Sand-dust_Images_with_Frequency-Guided_Attention_and_Multi-Scale_Features_CVPRW_2025_paper.html,paper-described derived benchmark,yes,Distinct from RESIDE haze; canonical standalone archive not confirmed
+ACDC20,mixed_weather,https://acdc.vision.ee.ethz.ch/,official academic dataset page,weak_correspondence,4006 adverse images fog night rain snow; normal-condition same-scene images are not pixel-aligned restoration targets

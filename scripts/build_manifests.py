@@ -10,7 +10,11 @@ WEATHER={"rain14000":"rain","rain800":"rain","rain100h":"rain",
 "snow100k-l":"snow","snow100k-m":"snow","snow100k-s":"snow","csd":"snow",
 "its":"haze","ots":"haze","hsts":"haze","reside its":"haze",
 "reside ots":"haze","reside hsts":"haze","reside-its":"haze",
-"reside-ots":"haze","reside-hsts":"haze"}
+"reside-ots":"haze","reside-hsts":"haze",
+"rain200h":"rain","rain200l":"rain","outdoor-rain":"rain_haze",
+"raincityscapes":"rain_haze","rain-cityscapes":"rain_haze",
+"cdd-11":"mixed_weather","cdd11":"mixed_weather","spa-data":"rain",
+"reside-s":"sand_dust"}
 EXPECTED={"rain14000":{"train":11200,"test":2800},"rain800":{"train":700,"test":100},
 "rain100h":{"train":1800,"test":100},"rain100l":{"train":0,"test":100},
 "rain1200":{"train":0,"test":1200},"rain12":{"train":0,"test":12},
@@ -18,6 +22,8 @@ EXPECTED={"rain14000":{"train":11200,"test":2800},"rain800":{"train":700,"test":
 "snow100k-m":{"train":0,"test":16588},"snow100k-s":{"train":0,"test":16611},
 "csd":{"train":8000,"test":2000},"reside its":{"train":4500,"test":500},
 "reside ots":{"train":4495,"test":500},"reside hsts":{"train":0,"test":10}}
+EXPECTED.update({"rain200h":{"train":1800,"test":200},
+"rain200l":{"train":1800,"test":200}})
 
 
 def main():
