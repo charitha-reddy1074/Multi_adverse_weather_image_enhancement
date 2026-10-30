@@ -71,11 +71,10 @@ bitwise or parameter-level equivalence with the authors' code.
   approximation. Channel, space, and wavelet attention remains ordered as stated.
 - The residual RGB skip is enabled as an engineering adaptation; it is not
   claimed as a confirmed paper choice. Set `residual_image: false` to ablate it.
-- DCT loss is differentiable and uses the specified Smooth L1 + 0.04 frequency
-  term. Since reduction is not fully specified, it computes the per-image
-  Frobenius norm across RGB and all 2D coefficients, adds epsilon 0.001 inside
-  the square root, and averages across batch. This is an explicit reduction
-  decision, not an unverified alternative transform.
+- Equations 11–13 are implemented in `losses/multidomain.py`: orthonormal DCT-II,
+  `sqrt(sum(diff**2) + 0.001**2)`, and Smooth L1 + 0.04 times the frequency
+  term. Reduction is explicit: elementwise Smooth L1 mean over B,C,H,W; one
+  DCT Frobenius norm over C,H,W per sample, then mean over batch.
 - AIR40K's exact sample manifest and split recipe are not available in the
   checked-in files. The loader accepts normalized paired folders; users must
   preserve official splits and dataset terms when assembling them.
