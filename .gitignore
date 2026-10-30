@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.dist/
+Frequency-Oriented_Efficient_Transformer_for_All-in-One_Weather-Degraded_Image_Restoration*.pdf
+checkpoints/*
+!checkpoints/.gitkeep
+outputs/*
+!outputs/.gitkeep
+results/
+data/raw/
+data/manifests/*.csv
+datasets/AIR40K/

@@ -1,0 +1,15 @@
+dataset,weather,source_or_project_url,notes
+Rain14000,rain,https://xueyangfu.github.io/projects/cvpr2017.html,Original project page; obtain the authorized archive from its current instructions
+Rain800,rain,https://github.com/hezhangsprinter/ID-CGAN,Project repository; check README for data links
+Rain100H,rain,https://github.com/hongwang01/Video-and-Single-Image-Deraining,Original repository; confirm RainTrainH/Rain1800 naming and split
+Rain100L,rain,https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html,Project page; verify current download availability
+Rain1200,rain,https://github.com/hezhangsprinter,Author organization profile; locate DID-MDN source instructions
+Rain12,rain,https://yu-li.github.io/,Research project page; locate original dataset link
+Raindrop,raindrop,https://github.com/rui1996/DeRaindrop,Author repository; check dataset terms and split
+Snow100K-L,snow,https://sites.google.com/view/yunfuliu/desnownet,Author project; original Snow100K release
+Snow100K-M,snow,https://sites.google.com/view/yunfuliu/desnownet,Author project; original Snow100K release
+Snow100K-S,snow,https://sites.google.com/view/yunfuliu/desnownet,Author project; original Snow100K release
+CSD,snow,https://github.com/weitingchen83/ICCV2021-Single-Image-Desnowing-HDCWNet,Author project; comprehensive snow dataset
+RESIDE ITS,haze,https://sites.google.com/view/reside-dehaze-datasets/,Official RESIDE project page; access terms may apply
+RESIDE OTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,Official RESIDE project page; access terms may apply
+RESIDE HSTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,Official RESIDE project page; access terms may apply

@@ -1,0 +1,30 @@
+# Paper oriented settings. Epoch count, batch size and architecture details are
+# unresolved engineering defaults; see docs/architecture_assumptions.md.
+seed: 42
+epochs: 300                 # engineering default; confirm against full paper
+batch_size: 8               # engineering default; confirm against full paper
+crop_size: 256
+lr: 0.0002
+min_lr: 0.0000001
+weight_decay: 0.0001
+betas: [0.9, 0.999]
+mixup_prob: 0.5
+lambda_freq: 0.04
+num_workers: 4
+base_channels: 32           # unresolved; replace if supplementary/code confirms
+stage_blocks: [2, 2, 2]     # unresolved engineering default
+attention_heads: 4          # unresolved engineering default
+max_spatial_tokens: 1024    # reduced-resolution K/V approximation in attention
+query_combine: add          # configurable inference; not asserted exact paper rule
+use_supplementary_prior: true
+use_task_queries: true
+use_frequency_decoder: true
+residual_image: true        # engineering adaptation; see assumptions
+test_pad_multiple: 128
+dataset_root: datasets/AIR40K/train
+train_manifest: data/manifests/train.csv
+val_manifest: data/manifests/val.csv
+gradient_accumulation_steps: 1
+mixed_precision: true
+gradient_checkpointing: false
+balance_weather: false

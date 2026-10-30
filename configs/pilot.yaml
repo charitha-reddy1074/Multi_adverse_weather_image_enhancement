@@ -1,0 +1,29 @@
+# Practical memory-oriented configuration; same AIRFormer mechanisms.
+seed: 42
+epochs: 20
+batch_size: 2
+crop_size: 128
+lr: 0.0002
+min_lr: 0.000001
+weight_decay: 0.0001
+betas: [0.9, 0.999]
+mixup_prob: 0.5
+lambda_freq: 0.04
+num_workers: 2
+base_channels: 16
+stage_blocks: [1, 1, 1]
+attention_heads: 2
+max_spatial_tokens: 256
+query_combine: add
+use_supplementary_prior: true
+use_task_queries: true
+use_frequency_decoder: true
+residual_image: true
+test_pad_multiple: 128
+dataset_root: datasets/AIR40K/train
+train_manifest: data/manifests/train.csv
+val_manifest: data/manifests/val.csv
+gradient_accumulation_steps: 4
+mixed_precision: true
+gradient_checkpointing: false
+balance_weather: false
