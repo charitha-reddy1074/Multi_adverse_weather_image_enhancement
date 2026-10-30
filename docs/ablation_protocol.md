@@ -52,3 +52,19 @@ python scripts/train.py --config configs/pilot.yaml --attention-order wavelet,sp
 ```
 
 The primary configuration remains Channel → Space → Wavelet.
+
+## Table XIII complexity check
+
+Table XIII compares runtime, trainable parameters, and FLOPs at 256×256. Run
+the profiler using the paper-oriented configuration or a trained checkpoint:
+
+```bash
+python scripts/profile_model.py --config configs/paper.yaml --height 256 --width 256
+python scripts/profile_model.py --checkpoint checkpoints/best.pt --height 256 --width 256
+```
+
+The reported AIRFormer reference is 58.34 M trainable parameters and 5.746
+GFLOPs. The script reports this beside the reconstructed model's measured
+parameter count, THOP estimate, and mean inference time. FLOPs use 2 per MAC;
+THOP may omit unsupported attention operations. Compare runs on the same device,
+precision, input size, and padding policy before drawing efficiency conclusions.

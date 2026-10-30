@@ -19,6 +19,7 @@ claimed by this repository.
 - Shape, gradient, and Haar reconstruction architecture tests.
 - Configurable Table XI component and Table XII attention-order ablations (see
   [ablation protocol](docs/ablation_protocol.md)).
+- A 256×256 Table XIII parameter/FLOPs/inference-time profiler.
 
 ## Data layout
 
