@@ -147,7 +147,11 @@ def main():
             x, target = x.to(device), target.to(device)
             with torch.autocast(device_type=device.type,enabled=amp_enabled):
                 pred = model(x); raw_loss = loss_fn(pred, target)[0]
-                loss=raw_loss/accum
+                # Normalize a short final accumulation window by its actual
+                # number of microbatches instead of underweighting it.
+                window_start=(step//accum)*accum
+                window_size=min(accum,len(train)-window_start)
+                loss=raw_loss/window_size
             if not torch.isfinite(raw_loss):
                 raise FloatingPointError(f"non-finite training loss at epoch={epoch+1} step={step}")
             scaler.scale(loss).backward()

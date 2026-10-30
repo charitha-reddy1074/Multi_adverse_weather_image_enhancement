@@ -17,9 +17,9 @@
 
 - No public dataset archives were downloaded or locally present, so no training
   run, checkpoint, PSNR/SSIM score, visual result, or FLOPs result is claimed.
-- PyTorch, torchvision, Pillow, and scikit-image are not installed in the active
-  Python environment. Syntax compilation passed; runtime architecture and loss
-  tests could not run here.
+- PyTorch, torchvision, Pillow, scikit-image, pytest, and PyYAML are not
+  installed in the active Python environment. Syntax compilation passed;
+  runtime architecture/loss tests and config parsing could not run here.
 - The checked-in paper text extraction supports the Figure 4 top-level mapping.
   The figure pixels were not visually rendered, so internal details visible
   only in the drawing remain documented assumptions.

@@ -136,6 +136,24 @@ python scripts/visualize.py --input path/to/degraded_images --pred outputs/resto
 
 `datasets/sources.csv` lists the requested sources, their weather label, availability notes, and whether they are paired restoration data. ACDC's corresponding normal-condition images are weak scene correspondences, not pixel-aligned restoration targets. `scripts/download_datasets.py` checks listed project pages for reachability only; it does not download or verify archives. After downloading, verify archive integrity and pairing locally and record archive name, URL, terms/license, date, and SHA-256.
 
+### Requested datasets and source links
+
+| Dataset | Source / download instructions | Use status |
+|---|---|---|
+| CDD-11 | [OneRestore project](https://github.com/gy65896/OneRestore) links the [CDD-11 Hugging Face dataset](https://huggingface.co/datasets/gy65896/CDD-11). | Paired archive is documented. Filter low-light-only and other non-weather classes if the experiment is limited to AIRFormer's weather domains. |
+| Rain200H | [Joint Rain Removal project page](https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html) | Paired; 1,800 train / 200 test. Confirm archive naming and avoid any duplicate Rain100H/Rain1800 scenes. |
+| Rain200L | [Joint Rain Removal project page](https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html) | Paired; 1,800 train / 200 test. |
+| Snow100K-L | [DesnowNet author page](https://sites.google.com/view/yunfuliu/desnownet) | Paired synthetic subset; 16,801 test images. |
+| Snow100K-S | [DesnowNet author page](https://sites.google.com/view/yunfuliu/desnownet) | Paired synthetic subset; 16,611 test images. |
+| Outdoor-Rain | [Histoformer project](https://github.com/sunshangquan/Histoformer) and its documented benchmark setup | Paired joint rain/haze data; 9,000 train. Check which test protocol/archive you obtained (Test1 commonly 750; other reports use 1,500). |
+| Raindrop | [Official DeRaindrop repository](https://github.com/rui1996/DeRaindrop) (README links the owner-hosted archive) | 861 train; Test-A is a subset of Test-B. The archive's documented Test-B has 239 images; do not concatenate Test-A and Test-B as independent images. AIR40K's 307 count needs archive-specific reconciliation. |
+| SPA-Data | [Deraining project page](https://stevewongv.github.io/derain-project.html); [public implementation with documented dataset links](https://github.com/Yizhou-Li-CV/ECNet) | Paired real rain; standard test is 1,000. Confirm whether a training count refers to full-resolution images or extracted patches. |
+| RESIDE-S | [Dust to Detail paper](https://openaccess.thecvf.com/content/CVPR2025W/WiCV/html/Mishra_Dust_to_Detail_Restoring_Sand-dust_Images_with_Frequency-Guided_Attention_and_Multi-Scale_Features_CVPRW_2025_paper.html) | Paper-described synthetic sand-dust derivative. No canonical standalone owner download was verified; this is not RESIDE's haze dataset. Treat as unavailable until its archive/generation recipe and source-scene split are confirmed. |
+| Rain Cityscapes | [Rain Cityscapes paper](https://openaccess.thecvf.com/content_CVPR_2019/html/Hu_Single_Image_Rain_Removal_Using_Classification_Guided_Network_CVPR_2019_paper.html); [Cityscapes source data](https://www.cityscapes-dataset.com/) | Paired synthetic variants; Cityscapes access/terms may apply. Preserve source-scene identity so variants from one scene cannot cross splits. |
+| ACDC20 | [Official ACDC page](https://acdc.vision.ee.ethz.ch/) | 4,006 adverse-weather images, annotations, and same-scene normal-condition correspondences. Not pixel-aligned restoration pairs; exclude from supervised paired training and PSNR/SSIM. |
+
+“Ready” here means the catalog and generic paired-manifest workflow can ingest verified pairs; it does not mean the archives are in this Git repository. **Before tomorrow's training**, download data from the links above where terms permit, normalize only validated pairs to the directory layout, create a scene-disjoint validation split, build manifests, and run `python -m pytest tests/ -q`. RESIDE-S requires separate provenance resolution and ACDC20 is not eligible for this paired supervised run.
+
 ## Repository map
 
 - `models/` — patch embedding, encoder, Supplementary Prior, queried attention, decoder, full model.
