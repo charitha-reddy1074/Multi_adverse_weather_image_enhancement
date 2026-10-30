@@ -27,8 +27,11 @@ datasets/AIR40K/raw/test/<source>/clean/<same-relative-name>.png
 Different source datasets may have their own naming and folder conventions. Convert/copy into this normalized layout only after checking pair alignment; never pair files by arbitrary sorted order.
 
 The training script defaults to `configs/pilot.yaml`, which uses the train
-directory. It expects the validation split at the sibling `test/` directory.
-Pass `--config configs/paper.yaml` to select the paper-oriented settings.
+directory and expects validation pairs from `data/manifests/val.csv` (or a
+sibling `val/` directory when no manifest is present). The paper has no
+validation split, so reserve disjoint scenes from the training sources. The
+official `test/` split must not be used for checkpoint selection. Pass
+`--config configs/paper.yaml` to select the paper-oriented settings.
 Dataset downloads remain at their owners' published locations because AIR40K's
 consolidated package and exact file manifest are unavailable here; preserve
 each dataset's terms and official train/test separation.

@@ -23,17 +23,18 @@
 - The checked-in paper text extraction supports the Figure 4 top-level mapping.
   The figure pixels were not visually rendered, so internal details visible
   only in the drawing remain documented assumptions.
-- Upload to the requested GitHub repository is pending remote repository access
-  and a safe local Git checkout; the working directory itself has no `.git`
-  directory and its parent `.git` points at the user's home directory.
+- Source is maintained in the requested GitHub repository's `main` branch.
+  Dataset archives, manifests, and training outputs are intentionally excluded
+  from Git and must be prepared on the execution machine.
 
 ## Next executable checks
 
-Install a compatible PyTorch build from pytorch.org, then run:
+Install a compatible PyTorch build from pytorch.org, install `requirements.txt`,
+prepare paired train/validation data and manifests, then run:
 
 ```bash
 pip install -r requirements.txt
 python -m pytest tests/
 python scripts/build_manifests.py --root datasets/AIR40K/raw --output data/manifests
-python scripts/train.py --config configs/pilot.yaml
+python train.py --config configs/pilot.yaml
 ```
