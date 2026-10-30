@@ -7,6 +7,13 @@ from .supplementary_prior import dwt2, idwt2
 
 
 class QueriedAttention(nn.Module):
+    """One Figure 5 attention axis with feature projections and task query bias.
+
+    `channel` builds channel-by-channel attention; `spatial` attends over image
+    tokens; `wavelet` attends over DWT coefficients and reconstructs with IDWT.
+    The additive task query is an explicit engineering interpretation of the
+    paper's task-biased, partly feature-derived Q description.
+    """
     def __init__(self, channels, mode, heads=4, max_spatial_tokens=1024,
                  query_combine="add", use_task_query=True):
         super().__init__()

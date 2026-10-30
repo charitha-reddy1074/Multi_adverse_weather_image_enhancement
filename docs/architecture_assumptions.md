@@ -15,6 +15,10 @@ bitwise or parameter-level equivalence with the authors' code.
   hierarchical frequency-guided encoder; Supplementary Prior guides encoder
   learning; the frequency-refined decoder uses encoder and decoder features for
   reconstruction.
+- Figure 5 and Section III-B confirm that the decoder refines features with
+  channel, spatial, and wavelet-domain self-attention, each constrained by
+  task-biased learned vectors together with input features. The paper's ablation
+  discussion confirms the primary order Channel → Space → Wavelet.
 - The encoder receives wavelet-based prior information; the decoder uses
   learnable task-specific queries across spatial, channel, and wavelet domains.
 - AIR40K combines examples from multiple existing weather datasets.
@@ -51,9 +55,12 @@ bitwise or parameter-level equivalence with the authors' code.
 - The first SP stage receives zero encoder and prior inputs as stated around
   Equation 10. Later stages receive their corresponding encoder features and
   the previous SP feature; the resulting guidance is added to encoder features.
-- Task-biased queries are learned additive embeddings by default. `query_combine`
-  makes this combination configurable; the exact projected query operation is
-  unresolved without Figure 5 detail.
+- Figure 5's text confirms that queries are partly task-derived and partly
+  feature-dependent, but the exact projection equations and tensor dimensions
+  are not specified in the extracted text. This implementation forms Q with a
+  learned per-domain query bias added to projected input Q; `query_combine`
+  offers additive or gated variants. Treat that combination as an inference,
+  not a claim of exact author-code equivalence.
 - Spatial/wavelet attention keeps full-resolution queries but adaptively pools
   keys and values above `max_spatial_tokens`. This is a documented memory-saving
   approximation. Channel, space, and wavelet attention remains ordered as stated.

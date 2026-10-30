@@ -7,6 +7,7 @@ from .attention import (ChannelQueriedSelfAttention, SpaceQueriedSelfAttention,
 
 
 class FrequencyRefinementBlock(nn.Module):
+    """Figure 5 refinement sequence; the paper's preferred order is default."""
     ORDER = ("channel", "space", "wavelet")
     def __init__(self, channels, order=ORDER, heads=4, max_spatial_tokens=1024,
                  query_combine="add", use_task_queries=True,use_frequency_decoder=True):
