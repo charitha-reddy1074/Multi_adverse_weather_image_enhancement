@@ -27,6 +27,14 @@ def test_prior_channel_scale_alignment():
     assert x.grad is not None
 
 
+def test_supplementary_prior_preserves_approximation_band():
+    x=torch.randn(1,4,12,14)
+    prior=SupplementaryPrior(4)
+    reference,_=dwt2(x)
+    filtered=prior.filter_wavelet_bands(x)
+    torch.testing.assert_close(filtered[:,:,0],reference[:,:,0])
+
+
 def test_encoder_starts_first_supplementary_prior_from_zeros():
     class Recorder(nn.Module):
         def __init__(self): super().__init__(); self.inputs=None

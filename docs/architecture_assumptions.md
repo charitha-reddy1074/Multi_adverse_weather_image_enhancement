@@ -52,6 +52,11 @@ bitwise or parameter-level equivalence with the authors' code.
 - DWT uses replicate padding on odd dimensions, then crops the inverse output
   back to the original shape. The fixed Haar basis is an engineering choice;
   it is not claimed as the paper's exact wavelet family.
+- In the Supplementary Prior, the Haar approximation band (LL) passes through
+  unchanged while depthwise spatial filtering is applied to LH/HL/HH. A learned
+  pointwise fusion then combines the preserved approximation, filtered details,
+  current encoder features, and prior-stage guidance, matching Equations 9–10's
+  stated low-frequency preservation/high-frequency filtering behavior.
 - The first SP stage receives zero encoder and prior inputs as stated around
   Equation 10. Later stages receive their corresponding encoder features and
   the previous SP feature; the resulting guidance is added to encoder features.

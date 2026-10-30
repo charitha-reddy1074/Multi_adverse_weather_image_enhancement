@@ -33,8 +33,10 @@ class SupplementaryPrior(nn.Module):
     """Stage-wise recurrent frequency feature guidance (Equation 10 form)."""
     def __init__(self, channels, previous_channels=None):
         super().__init__()
-        self.wavelet_filter = nn.Conv2d(channels*4, channels*4, 3, padding=1,
-                                        groups=channels*4)
+        # Eq. (9)-(10): preserve the low-pass approximation coefficients and
+        # apply depthwise filtering only to the three high-frequency bands.
+        self.detail_filter = nn.Conv2d(channels*3, channels*3, 3, padding=1,
+                                       groups=channels*3)
         self.fuse = nn.Sequential(nn.Conv2d(channels*6, channels, 1),
                                   nn.GELU(), nn.Conv2d(channels, channels, 3, padding=1))
         self.refine = nn.Sequential(nn.GroupNorm(1, channels),
@@ -42,11 +44,20 @@ class SupplementaryPrior(nn.Module):
                                     nn.GELU(), nn.Conv2d(channels, channels, 1))
         self.prev_proj = nn.Conv2d(previous_channels or channels, channels, 1)
 
+    def filter_wavelet_bands(self, encoder_feature):
+        b,c=encoder_feature.shape[:2]
+        bands,_=dwt2(encoder_feature)
+        approximation=bands[:,:,0]
+        details=bands[:,:,1:4].flatten(1,2)
+        details=self.detail_filter(details)
+        details=details.reshape(b,c,3,*details.shape[-2:])
+        return torch.cat((approximation.unsqueeze(2),details),dim=2)
+
     def forward(self, encoder_feature, previous_prior=None):
         b, c, h, w = encoder_feature.shape
-        bands, _ = dwt2(encoder_feature)
-        bands = bands.flatten(1, 2)
-        bands = self.wavelet_filter(bands)
+        # LL passes unchanged; the following pointwise fusion combines LL with
+        # filtered LH/HL/HH and the preceding supplementary feature.
+        bands = self.filter_wavelet_bands(encoder_feature).flatten(1,2)
         bands = F.interpolate(bands, size=(h,w), mode="bilinear", align_corners=False)
         prev = torch.zeros_like(encoder_feature) if previous_prior is None else previous_prior
         if prev.shape[-2:] != (h,w):
