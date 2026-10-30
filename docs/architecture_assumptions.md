@@ -11,7 +11,10 @@ bitwise or parameter-level equivalence with the authors' code.
 
 - A single all-in-one restoration model covers rain streaks, raindrops, snow,
   and haze.
-- The network uses a frequency-guided encoder and frequency-refined decoder.
+- Figure 4 (paper page 3) confirms the top-level flow: patch embeddings feed a
+  hierarchical frequency-guided encoder; Supplementary Prior guides encoder
+  learning; the frequency-refined decoder uses encoder and decoder features for
+  reconstruction.
 - The encoder receives wavelet-based prior information; the decoder uses
   learnable task-specific queries across spatial, channel, and wavelet domains.
 - AIR40K combines examples from multiple existing weather datasets.
@@ -38,12 +41,16 @@ bitwise or parameter-level equivalence with the authors' code.
   fusion details are not established by the available source files. The paper
   configuration's 32-channel width and two blocks per level are explicit
   engineering defaults, not paper specifications. The pilot shrinks these.
-- The available paper copy could not be rendered or text-extracted in this
-  execution environment (Poppler and PDF Python packages are absent). No claims
-  about unseen equation details or figure internals are made here.
+- The checked-in `.dist/paper.txt` extraction supplies the Figure 4 caption and
+  surrounding architecture text. The PDF figure pixels themselves are not
+  available for detailed visual inspection in this execution environment, so
+  Figure 4 supports the top-level mapping, not unprinted block internals.
 - DWT uses replicate padding on odd dimensions, then crops the inverse output
   back to the original shape. The fixed Haar basis is an engineering choice;
   it is not claimed as the paper's exact wavelet family.
+- The first SP stage receives zero encoder and prior inputs as stated around
+  Equation 10. Later stages receive their corresponding encoder features and
+  the previous SP feature; the resulting guidance is added to encoder features.
 - Task-biased queries are learned additive embeddings by default. `query_combine`
   makes this combination configurable; the exact projected query operation is
   unresolved without Figure 5 detail.

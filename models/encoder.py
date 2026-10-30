@@ -1,4 +1,5 @@
 """Hierarchical PoolFormer-style feature encoder."""
+import torch
 import torch.nn.functional as F
 from torch import nn
 
@@ -45,7 +46,12 @@ class HierarchicalEncoder(nn.Module):
                 x = self.downsamples[i-1](x)
             x = stage(x)
             if supplementary_modules is not None:
-                previous = supplementary_modules[i](x, previous)
+                if i == 0:
+                    # Equation 10 states X^0 = X_sup^0 = 0 at the first SP stage.
+                    zero = torch.zeros_like(x)
+                    previous = supplementary_modules[i](zero, zero)
+                else:
+                    previous = supplementary_modules[i](x, previous)
                 priors.append(previous)
                 x = x + previous
             features.append(x)

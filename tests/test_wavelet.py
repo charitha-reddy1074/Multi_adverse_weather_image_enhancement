@@ -1,6 +1,8 @@
 import pytest
 import torch
 from models.supplementary_prior import dwt2,idwt2,SupplementaryPrior
+from models.encoder import HierarchicalEncoder
+from torch import nn
 
 
 @pytest.mark.parametrize("shape",[(2,3,16,20),(1,4,17,19),(1,2,16,19)])
@@ -23,3 +25,17 @@ def test_prior_channel_scale_alignment():
     assert y.shape==x.shape and torch.isfinite(y).all()
     y.mean().backward()
     assert x.grad is not None
+
+
+def test_encoder_starts_first_supplementary_prior_from_zeros():
+    class Recorder(nn.Module):
+        def __init__(self): super().__init__(); self.inputs=None
+        def forward(self,x,previous):
+            self.inputs=(x.detach().clone(),previous.detach().clone())
+            return torch.zeros_like(x)
+    enc=HierarchicalEncoder((4,8,16),(1,1,1))
+    priors=nn.ModuleList([Recorder(),Recorder(),Recorder()])
+    features,_=enc(torch.randn(1,4,16,16),priors)
+    assert len(features)==3
+    assert torch.count_nonzero(priors[0].inputs[0])==0
+    assert torch.count_nonzero(priors[0].inputs[1])==0

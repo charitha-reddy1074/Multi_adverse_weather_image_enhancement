@@ -18,9 +18,9 @@
 - PyTorch, torchvision, Pillow, and scikit-image are not installed in the active
   Python environment. Syntax compilation passed; runtime architecture and loss
   tests could not run here.
-- The supplied PDF could not be rendered/text-extracted because Poppler and PDF
-  Python tools are unavailable. Figure-level internal choices are documented
-  as assumptions in `architecture_assumptions.md`.
+- The checked-in paper text extraction supports the Figure 4 top-level mapping.
+  The figure pixels were not visually rendered, so internal details visible
+  only in the drawing remain documented assumptions.
 - Upload to the requested GitHub repository is pending remote repository access
   and a safe local Git checkout; the working directory itself has no `.git`
   directory and its parent `.git` points at the user's home directory.
