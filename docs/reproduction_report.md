@@ -10,6 +10,8 @@
   symmetric inference padding, PSNR/SSIM, and result CSV generation.
 - Paper-oriented and pilot configurations, architecture assumptions, dataset
   source catalog, manifest builder, and CPU/GPU-ready tests.
+- Encoder pooling/self-attention, SP, spatial/frequency decoder, task-query,
+  loss, and all six attention-order ablation controls.
 
 ## Not achieved in this environment
 

@@ -15,23 +15,27 @@ class AIRFormer(nn.Module):
                  attention_heads=4, max_spatial_tokens=1024,
                  attention_order=("channel","space","wavelet"),
                  query_combine="add",
+                 encoder_token_mixer="pooling",decoder_mode=None,
                  use_supplementary_prior=True, use_task_queries=True,
-                 use_frequency_decoder=True, residual_image=True,
+                 use_frequency_decoder=None, residual_image=True,
                  gradient_checkpointing=False):
         super().__init__()
         if len(stage_blocks) != 3 or any(int(d) < 1 for d in stage_blocks):
             raise ValueError("stage_blocks must contain three positive depths")
         channels=(base_channels,base_channels*2,base_channels*4)
         self.patch_embed=PatchEmbed(3,channels[0],patch_size,patch_stride,patch_padding)
-        self.encoder=HierarchicalEncoder(channels,stage_blocks)
+        self.encoder=HierarchicalEncoder(channels,stage_blocks,encoder_token_mixer,
+                                         attention_heads,max_spatial_tokens)
         self.use_supplementary_prior=use_supplementary_prior
         if use_supplementary_prior:
             self.supplementary_priors=nn.ModuleList([
                 SupplementaryPrior(c, channels[i-1] if i else c)
                 for i,c in enumerate(channels)])
+        if decoder_mode is None:
+            decoder_mode="frequency" if use_frequency_decoder is not False else "none"
         self.decoder=HierarchicalDecoder(channels,attention_order,attention_heads,
                                          max_spatial_tokens,query_combine,use_task_queries,
-                                         use_frequency_decoder)
+                                         decoder_mode)
         self.reconstruct=nn.Conv2d(channels[0],3,3,padding=1)
         self.residual_image=residual_image
         self.gradient_checkpointing=gradient_checkpointing

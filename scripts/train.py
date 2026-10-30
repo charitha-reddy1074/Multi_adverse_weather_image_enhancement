@@ -50,6 +50,12 @@ def main():
     p.add_argument("--lr", type=float)
     p.add_argument("--base-channels", type=int)
     p.add_argument("--workers", type=int)
+    p.add_argument("--encoder-token-mixer",choices=("pooling","self_attention"))
+    p.add_argument("--decoder-mode",choices=("frequency","spatial","none"))
+    p.add_argument("--attention-order",help="comma-separated permutation, e.g. channel,space,wavelet")
+    p.add_argument("--disable-sp",action="store_true")
+    p.add_argument("--disable-task-queries",action="store_true")
+    p.add_argument("--lambda-freq",type=float)
     p.add_argument("--train-manifest")
     p.add_argument("--val-manifest")
     p.add_argument("--resume")
@@ -63,6 +69,12 @@ def main():
     cfg.update({k: v for k, v in overrides.items() if v is not None})
     if a.train_manifest: cfg["train_manifest"]=a.train_manifest
     if a.val_manifest: cfg["val_manifest"]=a.val_manifest
+    if a.encoder_token_mixer: cfg["encoder_token_mixer"]=a.encoder_token_mixer
+    if a.decoder_mode: cfg["decoder_mode"]=a.decoder_mode
+    if a.attention_order: cfg["attention_order"]=tuple(a.attention_order.split(","))
+    if a.disable_sp: cfg["use_supplementary_prior"]=False
+    if a.disable_task_queries: cfg["use_task_queries"]=False
+    if a.lambda_freq is not None: cfg["lambda_freq"]=a.lambda_freq
     train_root = Path(cfg["dataset_root"])
     val_root = Path(a.val_root) if a.val_root else train_root.parent / "val"
     seed = int(cfg.get("seed", 42))
@@ -100,6 +112,9 @@ def main():
                  "gradient_checkpointing": bool(cfg.get("gradient_checkpointing",False)),
                  "query_combine": cfg.get("query_combine","add"),
                  "attention_order": tuple(cfg.get("attention_order",("channel","space","wavelet")))}
+    model_cfg["encoder_token_mixer"]=cfg.get("encoder_token_mixer","pooling")
+    model_cfg["decoder_mode"]=cfg.get("decoder_mode",
+        "frequency" if cfg.get("use_frequency_decoder",True) else "none")
     model = AIRFormer(**model_cfg).to(device)
     loss_fn = MultiDomainConsistencyLoss(float(cfg.get("lambda_freq", .04)))
     opt = torch.optim.AdamW(model.parameters(), lr=float(cfg["lr"]),

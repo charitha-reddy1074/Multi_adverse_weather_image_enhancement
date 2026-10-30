@@ -19,6 +19,8 @@ query_combine: add          # configurable inference; not asserted exact paper r
 use_supplementary_prior: true
 use_task_queries: true
 use_frequency_decoder: true
+decoder_mode: frequency
+encoder_token_mixer: pooling
 residual_image: true        # engineering adaptation; see assumptions
 test_pad_multiple: 128
 dataset_root: datasets/AIR40K/train

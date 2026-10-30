@@ -17,6 +17,8 @@ claimed by this repository.
   evaluation, and dataset pair verification.
 - Paper-oriented and memory-conscious pilot configs.
 - Shape, gradient, and Haar reconstruction architecture tests.
+- Configurable Table XI component and Table XII attention-order ablations (see
+  [ablation protocol](docs/ablation_protocol.md)).
 
 ## Data layout
 
