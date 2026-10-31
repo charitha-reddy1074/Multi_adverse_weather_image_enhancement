@@ -1,0 +1,1229 @@
+PAGE 1
+1886 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+Frequency-Oriented Efficient Transformer for
+All-in-One Weather-Degraded Image Restoration
+Tao Gao
+ , Yuanbo Wen
+ , Kaihao Zhang
+ , Jing Zhang
+ , Ting Chen
+ , Lidong Liu
+ ,
+and Wenhan Luo
+ , Senior Member, IEEE
+Abstract— Adverse weather conditions, such as rain, raindrop,
+snow and haze, consistently degrade images in an unpre-
+dictable manner, thereby rendering existing task-specific and
+task-aligned methods inadequate in addressing this formidable
+problem. To this end, we investigate the application of
+Transformer in image restoration and introduce an efficient
+frequency-oriented method called AIRFormer, which is designed
+to restore weather-degraded images comprehensively and holis-
+tically. Specifically, we identify that the initial self-attention
+mechanism exhibits distinctive properties akin to a low-pass filter.
+Therefore, we construct a frequency-guided Transformer encoder
+by incorporating wavelet-based prior information to guide
+the extraction of image features. Additionally, considering the
+non-specific frequency characteristics of self-attention in the later
+stages, we develop a frequency-refined Transformer decoder that
+incorporates learnable task-specific queries across spatial dimen-
+sions, channel dimensions, and wavelet domains. To facilitate the
+training of our proposed method, we curate a comprehensive
+benchmark dataset named AIR40K that, encompasses a wide
+range of challenging scenarios. Extensive experimental evalua-
+tions demonstrate the superiority of our AIRFormer over both
+task-aligned and all-in-one methods across 15 publicly available
+datasets. Notably, AIRFormer achieves the best trade-off between
+the inference time and quality of reconstructed image, comparing
+with existing methods such as TransWeather and Restormer. The
+source code, dataset and pre-trained models will be available at
+https://github.com/chdwyb/AIRFormer.
+Index Terms— Computer vision, image restoration, adverse
+weather removal, frequency-oriented transformer.
+I. I NTRODUCTION
+A
+LL-IN-ONE
+image restoration (AIR) techniques have
+emerged as a significant research focus, aiming to
+Manuscript received 3 March 2023; revised 23 June 2023; accepted 24 July
+2023. Date of publication 27 July 2023; date of current version 7 March
+2024. This work was supported in part by the National Key Research and
+Development Program of China under Grant 2019YFE0108300; in part by
+the National Natural Science Foundation of China under Grant 52172379,
+Grant 62001058, and Grant U1864204; and in part by the Fundamental
+Research Funds for the Central University under Grant 300102242901 and
+Grant 300102211705. This article was recommended by Associate Editor
+X. Zhang. (Corresponding author: Yuanbo Wen.)
+Tao Gao, Yuanbo Wen, Ting Chen, and Lidong Liu are with the
+School of Information Engineering, Chang’an University, Xi’an 710064,
+China (e-mail: gtnwpu@126.com; wyb@chd.edu.cn; tchenchd@126.com;
+liulidong@chd.edu.cn).
+Kaihao Zhang and Jing Zhang are with the School of Computing, The
+Australian National University, Canberra, ACT 2601, Australia (e-mail:
+kaihao.zhang@anu.edu.au; jing.zhang@anu.edu.au).
+Wenhan Luo is with the School of Cyber Science and Technology, Shenzhen
+Campus of Sun Yat-sen University, Shenzhen, Guangdong 518107, China
+(e-mail: whluo.china@gmail.com).
+This article has supplementary material provided by the
+authors and color versions of one or more figures available at
+https://doi.org/10.1109/TCSVT.2023.3299324.
+Digital Object Identifier 10.1109/TCSVT.2023.3299324
+Fig. 1. Efficiency comparison of the evaluated methods for all-in-one weath-
+er-degraded image restoration between quantitative metrics and inference time.
+Our proposed AIRFormer outperforms all other methods [17], [19], [21], [22]
+and achieves the best trade-off between inference time and image quality.
+reconstruct high-quality images that have been degraded by
+various weather conditions, including rain, raindrop, snow, and
+haze. These weather degradations reduce image visibility and
+drastically affect the performance of certain computer vision
+algorithms, such as recognition [1], [2], [3], segmentation [4]
+and tracking [5], [6]. However, single-degraded image restora-
+tion plays the leading role currently, and it can be divided
+into two categories, 1) task-specific ones [7], [8], [9], [10],
+[11], [12], [13] and 2) task-aligned ones [14], [15], [16], [17],
+[18]. The former involves designing specialized models for
+distinct restoration objectives, while the latter constructs a
+single network that is trained separately to address multiple
+degradations. In contrast, all-in-one methods employ a unified
+network architecture to restore degraded images, offering
+a promising and practical approach to address the diverse
+challenges associated with weather-degraded image restora-
+tion. However, due to the diversity of image with weather
+degradations, finding a method that can identify commonalities
+across different weather conditions is a focal point of research
+in this field.
+Recently, there has been a growing interest in the
+development of all-in-one image restoration methods. One
+such approach, called All-in-One [19], exploits multiple
+weather-encoders to accept different degraded images and a
+sharing decoder to generate restored images, while adopting
+a discriminator to classify degradations. IPT [20] handles
+multiple degradations by adopting multiple heads and tails
+with a pre-trained Transformer. However, the use of separate
+1051-8215 © 2023 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 2
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1887
+Fig. 2. Spectrum variation of the in-/out-put features in self-attention .
+The first row demonstrates that early self-attention (SA) exhibits a preference
+for low-frequency information, while the second row illustrates that late SA
+operates as a non-specific filtering function. We posit that this behavior can
+be attributed to the late stages, which not only remove degradations but also
+reconstruct fine details.
+heads and tails in IPT necessitates training them separately
+from the main body network. In contrast, AirNet [21] and
+TransWeather [22] adopt an end-to-end scheme to remove
+unwanted factors during the restoration process. Unfortunately,
+these methods either suffer from high computational costs
+or overlook the frequency variation present in the restoration
+process.
+However, most Transformer-based methods [15], [16], [17],
+[22], [23] primarily focus on improving self-attention (SA)
+based on spatial features, without adequately considering the
+knowledge of frequency variation. In this paper, we investi-
+gate the general principle of Transformer in terms of image
+restoration [15], [17] and aim to unify multiple tasks related to
+adverse weather removal by incorporating frequency changes.
+We discover that early self-attention exhibits low-pass-like
+characteristics, while late SA does not function as a prominent
+filtering mechanism, as depicted in Figure 2. Although differ-
+ent weather degradations may have different frequency band,
+however their frequency variations of features in the u-shaped
+architectures are similar, which facilitates our establishment of
+all-in-one method. Our findings suggest that image restoration
+networks tend to capture low-frequency information during the
+early stages and effectively eliminate degradations present in
+the high-frequency components. Subsequently, the reconstruc-
+tion network gradually restores high-frequency information to
+preserve image details while removing degradations. To some
+extent, this phenomenon explains the use of “pooling” oper-
+ations and the performance enhancement achieved by SA in
+the later stages of PoolFormer [24]. With a natural division
+line between the early and late stages in the U-net architec-
+ture [25], we employ a U-shaped PoolFormer as our baseline
+encoder. Degradations, such as rain streaks [26] and snow
+particles [27], are often small in scale, leading to difficul-
+ties when attending to larger image patches. This limitation
+hampers the generalization performance without additional
+supplementary information. To address this issue, we propose
+a supplementary prior (SP) module that utilizes depth-wise
+wavelet convolution to fuse features and selectively filter
+high-frequency components while preserving low-frequency
+components. The SP module, in conjunction with frequency
+prior information, facilitates additive guidance for feature
+learning. Additionally, it enables the Transformer encoder to
+focus on features within patches after the patch embedding
+process. Although our method is frequency-oriented, which
+may not be necessary in the frequency domain for degraded
+images, it can be equivalently implemented using spatial
+operations.
+Most Transformer-based methods typically define tokens
+as pixels or patches in the spatial dimension. However,
+in regard to the unspecific frequency changes in the late
+stage, it becomes crucial to equally focus on both low and
+high frequencies to restore images with rich details and
+accurate regions. By visualizing the feature maps, we find that
+the spectra of different channels are not exactly the same.
+Fcanet [28] demonstrates that channel attention primarily
+enhances low frequencies, indicating that self-attention in
+the channel dimension emphasizes low-frequency information,
+while self-attention in the spatial dimension refines frequency
+at the resolution level. Furthermore, a feature map encom-
+passes both low and high frequencies, implying that more
+detailed attention is advantageous for image reconstruction
+and detail preservation. Inspired by [29], we employ a discrete
+wavelet transformer (DWT) to refine features into frequency
+components, enhancing feature representation in the frequency
+domain. In addition, vision Transformer always represents Q,
+K and V vectors are typically derived from the same input
+features, resulting in strong dependencies between attention
+and input features. This characteristic limits the generalization
+and transferability of the model when dealing with multiple
+degradations. According to the research in [30] and [22],
+we introduce special task-biased queries into the frequency
+refinement decoder, where the Q performs as prior knowledge
+related to the consistency of different weather conditions.
+Meanwhile, most methods [14], [17], [21], [22] primarily
+focus on the error in the spatial domain while disregarding
+the error in the frequency domain. This omission hinders the
+effective enforcement of frequency consistency between the
+restored and degradation-free images. To address this, we pro-
+pose a multi-domain consistency loss function to enhance the
+quality of restored images.
+Figure 3 shows our more detailed classification on different
+methods for weather-degraded image restoration than [21] and
+[22]. Figure 4 illustrates the overview of our proposed AIR-
+Former. The main contributions are summarized as follows.
+• We initially investigate Transformer from the viewpoint
+of feature frequencies. Subsequently, we propose AIR-
+Former as an all-in-one image restoration solution for
+adverse weather conditions. AIRFormer primarily con-
+sists of a frequency-guided Transformer encoder and a
+frequency-refined Transformer decoder.
+• Within our AIRFormer framework, we incorporate
+a frequency-guided encoder that generates features
+by leveraging the low-pass-like properties of early
+self-attention in Transformer. Furthermore, we devise
+a frequency-refined decoder that refines tokens from
+the channel dimension, spatial dimension, and wavelet
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 3
+1888 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+Fig. 3. Illustrations of different image restoration frameworks. In early studies, (a) shows task-specific solutions while (b) presents task-aligned networks
+for restoring images degraded by a single factor. Recently, the all-in-one-like (c) requires different heads and specific tails to achieve multi-degraded image
+restoration. Our work (d) aims to restore images by traing the exact same network once.
+Fig. 4. Overview of our proposed AIRFormer. The low-quality images are input into a frequency-guided Transformer encoder through patch embeddings to
+extract and generate hierarchical features. The learning process is guided by the supplementary prior. Subsequently, a frequency-refined Transformer decoder,
+which is constrained by spatial, channel, and wavelet queried vectors, generates task-biased features. These encoding and decoding features are then utilized
+to reconstruct high-quality images.
+domain to decode features. These decoding operations
+are guided by task-biased queries, which aim to enhance
+the generalization ability of the model.
+• Experimental results obtained from the evaluations con-
+ducted on 15 public datasets demonstrate that our pro-
+posed AIRFormer attains state-of-the-art performance
+while maintaining a low computational burden.
+II. R ELATED WORK
+A. Task-specific Image Restoration
+Early studies establish specialized models for degraded
+images to characterize the composition of degradation and
+corresponding ground truth as shown in Figure 3 (a). An image
+degraded by rain streaks is often modeled as [26], [31], [32]
+I = B + Rstreak , (1)
+where I is the rainy image, B is the rain-free image, and
+Rstreak is the rain streaks layer. In the following formu-
+las, we define I as the contaminated image and B as
+the degradation-free. For instance, DID-MDN [33] estimates
+rain-density and removes rain streaks using a multi-stream
+densely connected network. However, it fails to handle the
+degradation like haze. Liu et al. [27] model the snowy image
+as
+I = M ⊙ S + B ⊙ (1 − S), (2)
+where M is a mask indicating snow, ⊙ denotes element-wise
+multiplication, S is the snow layer. According to [12], raindrop
+degenerates image in the way of
+I = (1 − D) ⊙ B + Rdrop , (3)
+where D is a binary mask and Rdrop is the raindrop layer. The
+physical model of an image occluded by fog [34], [35] is
+I = T ⊙ B + (1 − T ) ⊙ A, (4)
+where T is the transmission map produced by scattering
+effect, A is the scene atmospheric light value. However,
+the composition and distribution of pollution in reality are
+different, yet specific modeling limits the solution space and
+leads to inability to adapt to the diversity [22], [27], [36], [37],
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 4
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1889
+like rain with various sizes, densities and directions. Lately,
+CNN and Transformer are introduced to improve the net-
+work generalization ability to single-degradation, and achieve
+great successes over traditional models in single-degradation
+image restoration tasks, like deraining [26], [33], [37], [38],
+[39], [40], desnowing [10], [27], [31], [41], [42], raindrop
+removal [12], [43], [44], [45], [46], [47] and dehazing [48],
+[49], [50], [51], [52], [53]. A general formula for these
+task-specific methods is
+B = fρ,θ ρ (Iρ)), (5)
+where fρ,θ ρ represents the network model and parameters
+θρ with respect to degradation type ρ, respectively. As the
+demand for intelligence is currently increasingly, task-specific
+methods have been unable to handle a variety of possible
+degradations. Therefore, seeking a task-aligned solution for
+different degradations has gradually received attention.
+B. Task-Aligned Image Restoration
+Although there are inconsistencies between different degra-
+dation principles, the powerful representational capability of
+deep learning leads to task-aligned single-degradation image
+restoration methods [14], [16], [17], [54], [55], which can be
+expressed as
+B = fθρ (Iρ), (6)
+where fθρ denotes the same solution with parameters θρ
+corresponding to the degraded image Iρ. Among these meth-
+ods as shown in Figure 3 (b), [56] presents a multi-level
+wavelet CNN for enlarging receptive field with better trade-off
+between efficiency and effectiveness. MIRNet [57] establishes
+a new feature extraction model, which preserves the original
+high-resolution features while maintaining accurate spatial
+details. Later, a style of residual connection is presented,
+dubbed “dual residual connection” [58], aiming to exploit the
+potential of paired operations. CLEARER [59] proposes a
+multi-resolution searching space to find suitable architectures
+and finally achieve promising performance in denoising and
+deraining. Recently, MPRNet [14] designs a multi-stage net-
+work that produces context-rich and spatially accurate output
+to achieve progressive restoration, and HINet [60] similarly
+achieves competitive performance with less computation and
+time-consumption based on half instance normalization. Along
+with the development of vision Transformer, SwinIR [15],
+Restormer [17] and Uformer [16] achieve quite good perfor-
+mance on several image restoration tasks. At the near present,
+MAXIM [18] conducts a general image processing framework
+based on multi-axis MLP. Although task-aligned methods
+present effective generalization and superior performance, the
+separate training and long-term inference are the stumbling
+blocks in practical application.
+C. All-in-One Image Restoration
+Previous methods either establish corresponding models for
+specific task [12], [26], [27], [48], or learn unified solutions
+but trained separately [14], [16], [17], [18], without exploring
+the commonality among different degradations to achieve AIR.
+There are two formulas for AIR, as shown in Figure 3 (c)
+B = tρ,θ ρ ( fθ (gρ,θ ρ (Iρ))), (7)
+where tρ,θ ρ and gρ,θ ρ are the processing tail and head for Iρ,
+fθ are the parameters that remains constant after leaning for
+all degradations. Please note that tρ is not always considered.
+For example, [19] proposes an AIR method, which contains
+different acceptance heads for several bad weather conditions.
+In contrast, IPT [20] develops a pre-trained image processing
+framework with specific tails for each type of pollution. The
+other formula is
+B = fθ (Iρ), (8)
+where fθ is self-same for all weather-degraded image restora-
+tion tasks as shown in Figure 3 (d). In related research, [61]
+proposes a decoupled learning framework to adapt several
+image restoration tasks, which is similar to late [21], [62].
+Besides, the method named TransWeather [22] is designed for
+multi-degraded image restoration with only one single encoder
+and decoder. Therefore, the all-in-one methods formulated
+as (8) perform as the promising and effective approaches to
+eliminate multiple weather degradations unitedly.
+D. Vision Transformer
+Transformer has been widely adopted in up-/low-stream
+computer vision tasks [16], [17], [30], [63], [64], [65],
+and shown considerable competitiveness. Current works on
+Transformer believe that spatial SA can effectively learn
+long-range dependencies and adapt to the input, therefore
+focus on improving the token mixers, like window parti-
+tioning [64], [66], relative position coding [67], convolution
+combining [68], [69], [70] and formula optimizing [71], [72].
+Beyond above, some other works [73], [74], [75] simply
+replace SA with MLP-like modules and still achieve compara-
+ble effects, which questions the dominance of attention-based
+architectures and inspires the work on what plays the core
+role in Transformer. For example, PoolFormer [24] applies
+a simple operator named “pooling”, which outperforms the
+mainstream vision Transformer-based methods [64], [74], [76],
+[77]. However, few works explore and clarify the frequency
+characteristics of Transformer in image restoration.
+III. P ROPOSED AIRF ORMER
+Our main purpose is to explore the feature frequency
+varying tendency of vision Transformer in image restoration,
+thus accordingly design a frequency-oriented efficient Trans-
+former to restore the degraded image under adverse weather
+conditions. The overall pipeline of our proposed AIRFormer
+is shown in Figure 4. Notably, although our AIRFormer
+is frequency-oriented, which processes the weather-degraded
+image in spatial domain equivalently instead of introducing
+extra frequency transformation into architectural establish-
+ment. The main components in our proposed AIRFormer are
+illustrated specifically in the following sections.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 5
+1890 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+Fig. 5. Overview of our proposed frequency-refined Transformer decoder. We calculate self-attention in the spatial and channel dimensions, as well as
+in the wavelet domain, by utilizing task-specific vectors associated with each dimension. This operation enables the decoder to selectively attend to frequency
+information at multiple levels.
+TABLE I
+COMPOSITION OF AIR40K D ATASET FOR ALL-IN-ONE IMAGE RESTORATION UNDER ADVERSE WEATHER CONDITIONS
+A. Frequency-Guided Transformer Encoder
+Initially, we explore the frequency characteristics of SA
+and MLP in the pretrained image restoration networks,
+SwinIR [15] and Restormer [17]. Surprisingly, we find that
+early SA is low-pass-like while late SA does not work as
+an obvious filter function. The approximations of early SA
+and “pooling” in frequency properties further support the
+appropriate adoption of PoolFormer [24] in our baseline of
+Transformer encoder. However, adverse weather conditions
+present both approximations and differences, which causes
+unguided learning to exacerbate the training difficulty. Existing
+work rarely embeds the frequency information, while a few
+turn it into a backbone component instead of a bootstrap
+module. For example, Fnet [82] replaces self-attention with
+fast Fourier transform. However, our experiments suggest that
+this kind of approach leads to worse performance than self-
+attention-based Transformer in image restoration.
+The research in [29] reveals that discrete wavelet transform
+(DWT) [83] improves the representation ability of vision
+Transformer. We attribute it to the fact that, DWT down-
+samples the two-dimensional image into wavelet sub-bands
+and achieves a fine separation of high/low frequencies. Since
+the frequency changes significantly in image restoration, the
+separation and enhancement of frequencies are beneficial. The
+2-dimensional DWT is defined as
+Wϕ[ j + 1, k] =hϕ[−n] ∗Wϕ[ j, n]
+⏐⏐
+n=2 k,k≤0 ,
+Wψ [ j + 1, k] =hψ [−n] ∗Wψ [ j, n]
+⏐⏐
+n=2 k,k≤0 , (9)
+where ϕ and ψ denote the approximation and detail function
+respectively, Wϕ and Wψ are the coefficients, hϕ[−n] is
+the time reversed scaling vector while the hψ [−n] is the
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 6
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1891
+wavelet vector, n and j denote the sampling of vector and
+the resolution level. Due to the low-frequency preservation
+in early stage, we perform fused filtering on high-frequency
+components, and then guide the Transformer encoder to extract
+and generate feature through a refinement module. We name
+this guiding frequency knowledge as supplementary prior,
+which can be formulated as
+Xlsup = S Pl (Xl−1, Xl−1sup ), (10)
+where Xlsup and S Pl denote the mapping approach contain-
+ing DW T (·), fused filtering and refinement [24] at current
+stage, Xl−1 is the feature enhanced by Xl−1sup . When l = 1,
+Xl−1 = 0 and Xl−1sup = 0. On one hand, our frequency-guided
+Transformer encoder meets the low-pass-like characteristics of
+backbone network, and on the other hand SP guides the AIR-
+Former to converge faster and extract more accurate features.
+In addition, supplementary prior is additively embedded into
+the Transformer encoder, which provides frequency-oriented
+information while ensuring that the main features are not
+drastically transformed.
+B. Frequency-Refined Transformer Decoder
+The non-specific filtering characteristics and a fact [24] that
+the classification accuracy is significantly improved by replac-
+ing “ pooling” with SA in later learning period, suggesting it
+is worse to apply the same token mixer in our Transformer
+decoder. Therefore, based on the frequency variation in image
+restoration, we rethink feature decoder architecture in terms
+of refining frequency.
+Most Transformer-based image restoration methods [16],
+[17] define token as pixel or patch, aggregating context in spa-
+tial dimension. However, there are differences in the spectrum
+regarding the same set of features. In [28], the channel atten-
+tion is verified to be the lowest-frequency component of dis-
+crete cosine transformer (DCT). Obviously, channel-dimension
+self-attention is a simple proportional transformation in fre-
+quency domain from different channels. Based on this,
+we refine feature frequencies and transfer attention to channel
+dimension for realizing weighted frequencies transformation.
+Therefore, channel attention in either CNN or Transformer is
+a representation in low-frequency level feature. Another fact
+is that spatial self-attention is more powerful than channel
+attention in modeling rich frequency dependencies, thereby we
+first adopt these two-dimension SA to realize frequency-wise
+refinement. However, Zheng et al. [84] recently demonstrates
+that self-attention is less powerful than convolution to capture
+high-frequency dependencies, which inspires us that high/low
+frequency separation may improve this disadvantage. Further-
+more, we consider that simply calculating SA in both space
+and channel dimension misses the contribution discrepancy
+at different frequencies levels in single feature plain. Based
+on this, we adopt DWT to further refine feature frequencies
+and represent self-attention mapping in wavelet domain. The
+computation of SA in spatial dimension, channel dimension
+and wavelet domain focuses on frequency changes from a
+more holistic and detailed perspective, thereby facilitates the
+reconstruction of multi-weather degraded image. Although
+these main architectures have existed, no research ever unified
+them in terms of frequency refinement to our best knowledge.
+In addition, Transformer always represents self-attention
+from pre-positioned feature maps, and exhibits over-strong
+dependencies between self-attention and input features, result-
+ing in the limitations of generalization and transferability.
+According to [30] and [22], we construct task-biased queries
+separately for frequency-refined decoder. Different with [22],
+it constrains the attention by both a set of learnable vectors
+and input features. We illustrate the task-queried attention
+blocks in Figure 5, where Q is not all from input features as
+usual, but vectors partially representing task knowledge based
+on the particularity of weather-degraded image restoration.
+In this approach, the features decoded by our decoder not
+only employ sufficiently frequency information, but also are
+directed by the all-in-one task-biased queries.
+C. Multi-Domain Consistency Loss
+The common loss functions calculate loss in space and
+ignore the multi-domain consistency. However, similarity in
+space does not necessarily represent the similarity in fre-
+quency. We reduce the image to 1-dimensional continuous
+signal, where a zero signal shows 0 in both time and frequency
+domains. The MAE between the two signals in Figure 8 and
+zero signal are equal, but there appears a significant difference
+in frequency domain. Obviously, this phenomenon also exists
+in digital images, thereby we propose a multi-domain consis-
+tency loss function, which utilizes discrete cosine transform
+(DCT) to project an image into a set of cosine components
+for different 2-dimensional frequencies. We define the loss
+function in frequency domain as
+L f req =
+√
+∥DCT (I) − DCT (G)∥2 + ϵ2, (11)
+where I and G denote restored image and ground-truth respec-
+tively, and ϵ is a constant empirically set to 0.001. The smooth
+L1 loss is also utilized as Lsmooth 1, which is formulated as
+Lsmooth 1 =
+{
+0.5E2, if |E| < 1
+|E| −0.5, else , (12)
+where E = 1H W
+H −1∑
+i=0
+W −1∑
+j=0
+[I(i, j) − G(i, j)]. Eventually, our
+multi-domain consistency loss function is formulated as
+L = Lsmooth 1 + λL f req , (13)
+where λ is set to 0.04 following [22].
+IV. E XPERIMENTS
+We evaluate our proposed AIRFormer for several
+multi-degraded image restoration tasks, including deraining,
+raindrop removal, desnowing and dehazing. The more specific
+details of datasets, training and visualization are attached in the
+supplementary materials. In the following tables, we highlight
+and underline the best and second-best quantitative scores.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 7
+1892 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+TABLE II
+ALL-IN-O NE WEATHER REMOVAL : I MAGE DERAINING . W E TRAIN FOUR STATE-OF-THE -ART METHODS AND OUR AIRF ORMER ON AIR40K
+WHILE TEST ON 6 R AINY DATASETS , THE QUANTITATIVE RESULTS ACHIEVE FURTHER IMPROVEMENTS IN BOTH PSNR AND SSIM
+Fig. 6. Sampled results of comparative methods and our AIRFormer on all-in-one deraining task, where the color boxes correspond to the zoom-in patches
+for better visual comparison.
+Fig. 7. Sampled results of comparative methods and our AIRFormer on all-in-one raindrop removal, where the color boxes correspond to the zoom-in patches
+for better visual comparison.
+Fig. 8. Comparison of temporal signals and corresponding spectrums with
+the same mean square error to zero-like signal in time domain.
+A. Datasets
+There are two all-in-one datasets from All-in-One [19]
+and AirNet [21]. The former one is not comprehensive and
+contains few weather datasets, while the latter one is not
+composed specifically for adverse weather removal. We col-
+lect an all-in-one image restoration dataset named AIR40K,
+including Rain14000 [26], Rain800 [79], Rain100H [80],
+TABLE III
+ALL-IN-O NE WEATHER REMOVAL : I MAGE DEHAZING . O N BOTH
+AVERAGE PSNR AND SSIM, O UR AIRF ORMER DEMONSTRATES
+FAVORABLE PERFORMANCE OVER THE OTHER METHODS
+Rain100L [80], Rain1200 [33], Rain12 [81], Raindrop [43],
+Snow100K [27], CSD [10], ITS [34], OTS [34], HSTS [34].
+We sample these datasets under different adverse weather
+conditions to compose a comprehensive AIR40K for all-in-
+one image restoration as shown in Table I. Therefore, our
+AIR40K dataset is much broader and more comprehensive
+than currently existing datasets for all-in-one adverse weather
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 8
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1893
+Fig. 9. Sampled results of four methods and our AIRFormer on all-in-one dehazing task, where the color boxes correspond to the zoom-in patches for better
+visual comparison.
+TABLE IV
+ALL-IN-O NE WEATHER REMOVAL : I MAGE DEHAZING . ON BOTH
+AVERAGE PSNR AND SSIM, O UR AIRF ORMER DEMONSTRATES
+FAVORABLE PERFORMANCE OVER THE OTHER METHODS
+removal. For fair comparison, we have not made any changes
+to the image number and distribution of all test datasets.
+B. Implementation Details
+Our proposed AIRFormer is trained on 256 × 256 random-
+cropped patches from our collected AIR40K dataset.
+We exploit the AdamW optimizer (β 1 = 0.9, β2 = 0.999,
+weight decay 10 -4) with an initial learning rate of 2 × 10−4,
+which are steadily decreased to 1 × 10−7 by the cosine
+annealing decay [85]. Meanwhile, random horizontal and
+vertical flips, 90 ◦ rotation and MixUp [86] with probability
+0.5 perform the data augmentation. When testing, we pad the
+input images to a multiplier of 128 × 128 using symmetric
+padding on both sides. After inference, we crop the padded
+images back to original size, thus our AIRFormer adapts to
+all sizes of the degraded images. All the experiments are
+performed on NVIDIA GeForce RTX 3090.
+C. All-in-One Weather Removal
+We compare the PSNR/SSIM [87] scores of the pro-
+posed AIRFormer with the state-of-the-art task-aligned meth-
+ods (MPRNet [14], Restormer [17]) and all-in-one meth-
+ods (AirNet [21], Transweather [22]). All the experimental
+methods are trained on our composed AIR40K dataset and
+PSNR/SSIM scores are calculated by using the functions
+of peak_signal_noise_ratio and structural_similarity from the
+package of skimage.metrics, which also can be found in our
+source code.
+1) Deraining: We report the quantitative performance of
+evaluated image deraining approaches on 6 rainy test datastes
+in Table II. Overall, the proposed AIRFormer achieves favor-
+able advantages over the other algorithms. Compared to the
+TABLE V
+ALL-IN-O NE WEATHER REMOVAL : I MAGE DESNOWING . O UR
+AIRF ORMER ACHIEVES A PERFORMANCE GAIN
+UP TO ∼1.38 dB IN PSNR
+recent best task-aligned method Restormer [17], our method
+obtain average gain of 0.78 dB in PSNR and 4.52% in
+SSIM. Meanwhile, AIRFormer outperforms the all-in-one
+TransWeather [22] by 1.66 dB and 3.15% in PSNR and SSIM,
+respectively. It is notable that AIRFormer performs far ahead
+in terms of challenging sky restoration as the second row of
+Figure 6 shown, thereby demonstrating its effectiveness and
+robustness.
+2) Raindrop Removal: For raindrop removal task,
+we believe that raindrops are similar to snow particles to
+some extent, thus the training dataset is not extended like [19].
+In Table III, we report the PSNR/SSIM scores of several
+methods on RainDA and RainDB datasets. Our AIRFormer
+achieves the best performance, for example, it obtains
+considerable gain of 2.39 dB over TransWeather [22].
+Figure 7 shows the visual comparisons on two challenging
+images. Our AIRformer eliminates raindrops and reconstructs
+the background finely while other methods tend to result of
+many black particles.
+3) Desnowing: We evaluate our AIRFormer on the test
+datasets of Snow100K [27] and CSD [10]. Table V shows
+that our AIRFormer achieves the best performance on SnowL,
+SnowM and Snow 2000 dataset while the second-best per-
+formance on SnowS dataset. Figure 10 illustrates the visual
+results, where our AIRFormer presents strong generalization
+capability in removing the snow from sky, which tends to
+remain after processed by other methods. It can be concluded
+that AIRFormer is robust to the restoration of low-frequency
+region and the fidelity of high-frequency part.
+4) Dehazing: Table IV shows the quantitative compar-
+isons on image dehazing. Our model surpasses the previous
+Restormer [17] and TransWeather[22] by 0.59 dB and 1.88 dB
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 9
+1894 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+Fig. 10. Sampled results of four methods and our AIRFormer on all-in-one desnowing task, where the color boxes correspond to the zoom-in patches for
+better visual comparison.
+of PSNR, which achieves higher scores on both indoor and
+outdoor test datasets. We sample and illustrate the results of
+experimental methods in Figure 9. The dehazed images from
+our AIRformer attain better global color tone and sharper
+textures, while maintaining the consistency in flatten region.
+D. Single Weather Removal
+1) Image Deraining: We choose the datasets of Test1 [88],
+Rain800 [79] and DID-Data [33] to evaluate our proposed
+AIRFormer. As Table VI illustrated, AIRFormer obtains
+the highest SSIM scores on all the datasets and the best
+performance on the Test1 dataset. On both Rain800 and
+DID-Data datasets, our proposed AIRFormer achieves the
+second-best performance in PSNR, which are close to the best
+Restormer [17].
+2) Image Desnowing: The Snow100K dataset is commonly
+used to evaluate desnowing performance. Table VII shows that
+our AIRFormer achieves the best performance on Snow100K
+dataset in both PSNR and SSIM indicators.
+3) Raindrop Removal: To evaluate the effectiveness of our
+proposed AIRFormer on raindrop removal task, we conduct
+experiments on Test-a and Test-b datasets [12]. Table VIII
+reports that AIRFormer obtains the best performance in SSIM
+and the second-best performance in PSNR (where the scores
+are close to the best MPRNet [14].
+4) Image Dehazing: We choose the datasets from NTIRE
+2020 [89] and NTIRE 2021 [90] to evaluate the dehazing per-
+formance of our proposed AIRFormer. As TableIX shown, our
+proposed AIRFormer obtains performance gains of 0.86 dB
+and 0.63 dB over FSDGN [91] in PSNR.
+E. Real Application
+To evaluate how the AIRFormer works in real-world scenar-
+ioa and verify the generalization ability, we conduct additional
+experiments on the real-world degraded datasets from [27],
+[34], and [104]. The real-world rainy, hazy and snowy datasets
+contains 300, 4322 and 1329 images respectively. Due to the
+raindrop dataset is obtained in real world, we did not conduct
+real-world experiments for raindrop removal task. We choose
+two unsupervised metrics, naturalness image quality evalua-
+tor (NIQE) [105] and spatial-spectral entropy-based quality
+(SSEQ) [106], to objectively measure the performance of
+our AIRFormer and other methods on real-world degraded
+TABLE VI
+SINGLE WEATHER REMOVAL : I MAGE DERAINING . O UR AIRF ORMER
+ACHIEVES THE BEST PSNR ON TEST 1 [88] DATASET AND BEST SSIM
+ON ALL THREE DATASETS [33] , [79] , [88]
+TABLE VII
+SINGLE WEATHER REMOVAL : I MAGE DESNOWING . O UR PROPOSED
+AIRF ORMER ACHIEVES THE BEST PERFORMANCE
+ON SNOW100K [27] DATASET
+images. NIQE is based on the construction of a quality-aware
+collection of statistical features based on natural scene statistic
+model. These feature s are derived from a corpus of natural
+undistorted images. SSEQ utilizes local spatial and spectral
+entropy features on distorted image across multiple distortion
+categories. The smaller of these two metrics, the higher
+the quality of the degradation-free images. Table X shows
+the quantitative results, which illustrates that our AIRFormer
+achieves either the best or the second-best performance on
+the real-world degraded images. We also present extensive
+samples in the web to further verify the better generalization
+ability of our AIRFormer over those of other comparative
+methods. Due to space limitation, the visual results will be
+released in our github page.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 10
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1895
+TABLE VIII
+SINGLE WEATHER REMOVAL : R AINDROP REMOVAL . O UR
+AIRF ORMER ACHIEVES THE SECOND -BEST PSNR AND THE BEST
+SSIM ON TEST-A AND TEST-B DATASETS [12]
+TABLE IX
+SINGLE WEATHER REMOVAL : I MAGE DEHAZING . O UR PROPOSED
+AIRF ORMER OBTAINS PERFORMANCE GAINS OF 0.86 DB AND 0.28 DB
+IN PSNR O VER THE EVALUATED METHODS ON THE HAZY DATASETS
+FROM NTIRE 2020 [89] AND NTIRE 2021 [90] , RESPECTIVELY
+TABLE X
+REAL -WORLD IMAGE RESTORATION RESULTS . O UR AIRF ORMER
+ACHIEVES EITHER BEST OR SECOND -BEST PERFORMANCE ON
+REAL -WORLD WEATHER REMOVAL OVER THOSE
+OF OTHER COMPETING METHODS
+V. A BLATION STUDIES AND DISCUSSIONS
+For Ablation study, we conduct the experiments of indi-
+vidual components by training on AIR40K and testing on
+Rain2800 [26] datasets. Meanwhile, we further discuss and
+analyze the efficiency and the limitations of our AIRFormer.
+A. Individual Components
+In this part, we start with a U-shaped PoolFormer [24] as a
+baseline. Then, we convert the “pooling” with self-attention
+and add the supplementary prior in Transformer encoder.
+Furthermore, the frequency refinement is utilized to replace the
+common spatial-dimension attention, while the task-queried
+vectors perform as the replacements of usual Q in vision
+Transformer. Please note that we conduct experiments on
+the 4 weather-degraded datasets to analyze where the main
+TABLE XI
+THE ABLATION EXPERIMENTS OF INDIVIDUAL COMPONENTS
+IN THE PROPOSED AIRF ORMER
+TABLE XII
+ABLATION EXPERIMENTS OF THE FREQUENCY REFINEMENT
+IN DECODER OF AIRF ORMER
+TABLE XIII
+EFFICIENCY ANALYSIS OF THE FOUR STATE-OF-THE -A RT
+METHODS AND OUR AIRF ORMER
+improvements come from. The metrical scores are the average
+indicators of the involved datasets of corresponding weather
+conditions. Table XI reports the results of ablation study in
+individual components. It demonstrates that each component
+contributes to the improved performance. Furthermore, we also
+conduct ablation experiments on the frequency refinement in
+Transformer decoder. Table XII shows the comparative results
+obtained by different permutations of SA in spatial-dimension,
+channel-dimension and wavelet domain. We experimentally
+find that the order of [ Channel, Space, Wavelet ] achieves
+the best scores, which meets the research in [107] and the
+demand of feature frequency refinement.
+B. Efficiency Analysis
+: We compare our AIRFormer with four methods processing
+an image of 256 × 256 in terms of average inference time
+(Avg. time), trainable parameters (Par.) and floating point
+operations (FLOPs). Table XIII shows that our method is with
+the minimum calculation complexity. Meanwhile, we illustrate
+the efficiency comparison in Figure 1, which shows that
+our proposed AIRFormer achieves the best tradd-off between
+image quality and processing time. Overall, AIRFormer is a
+real-time applicable methods for all-in-one weather removal.
+C. Loss Functions
+We conduct ablation study to determine the effective
+and competence of frequency-oriented design. We compare
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 11
+1896 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+TABLE XIV
+COMPARISON OF DIFFERENT LOSS FUNCTIONS . OUR MULTI-DOMAIN
+CONSISTENCY LOSS FUNCTION PERFORMS THE BEST OVER OTHER
+COMMON USED LOSS FUNCTIONS
+proposed loss function with several common used losses.
+Table XIV shows that our loss function achieves the best
+performance on both PSNR and SSIM. Specifically, our
+consistency loss function increases 0.37 dB at PSNR over
+L1. Although Lsmooth 1 obtains lower performance than L1,
+we experimentally find that our AIRFormer constrained by
+Lsmooth 1 is easier to converge to fine performance than, thus
+we adopt Lsmooth 1 loss function and frequency domain loss
+L f req to train our AIRFormer.
+D. Limitations
+We exquisitely design the AIRFormer through exploring
+the tendency of features frequency changing in the well-tuned
+SwinIR [15] and Restormer [17], while the specific reason of
+frequency changing is not discussed in detail. Moreover, our
+work focuses only on the four common weather conditions
+without considering more weather type degradations, like dust,
+dark light, etc.
+VI. C ONCLUSION
+In this work, we explore Transformer in feature frequencies
+and find that the early SA performs low-pass-like while the
+later is unspecific. Our discoveries verify the improvement
+of PoolFormer with “pooling” and attention. Furthermore,
+we build a hierarchical frequency-guided encoder to extract
+and generate features from degraded images, which is supple-
+mented with the frequency of original patches. Meanwhile,
+we refine the feature frequencies and represent attention
+queried by the task-biased vectors from channel dimension,
+spatial dimension and wavelet domain. In addition, we also
+formulate a multi-domain loss function to keep the consistency
+of restored image in spatial and frequency domains. Extensive
+experiments on both synthetic and real-world multi-degraded
+images shows that our AIRformer achieves real-time perfor-
+mance while outperforms the current state-of-the-art methods.
+REFERENCES
+[1] T. Gao, Y . Wen, J. Zhang, K. Zhang, and T. Chen, “From heavy
+rain removal to detail restoration: A faster and better network,” 2022,
+arXiv:2205.03553.
+[2] L.-W. Kang, C.-W. Lin, and Y .-H. Fu, “Automatic single-image-based
+rain streaks removal via image decomposition,” IEEE Trans. Image
+Process., vol. 21, no. 4, pp. 1742–1755, Apr. 2012.
+[3] Z. Zha, B. Wen, X. Yuan, S. Ravishankar, J. Zhou, and C. Zhu, “Learning
+nonlocal sparse and low-rank models for image compressive sensing:
+Nonlocal sparse and low-rank modeling,” IEEE Signal Process. Mag.,
+vol. 40, no. 1, pp. 32–44, Jan. 2023.
+[4] L.-C. Chen, Y . Zhu, G. Papandreou, F. Schroff, and H. Adam,
+“Encoder–decoder with Atrous separable convolution for semantic
+image segmentation,” in Proc. Eur. Conf. Comput. Vis. (ECCV), 2018,
+pp. 801–818.
+[5] L. Zheng, M. Tang, Y . Chen, G. Zhu, J. Wang, and H. Lu, “Improv-
+ing multiple object tracking with single object tracking,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,
+pp. 2453–2462.
+[6] B. Yan, H. Peng, J. Fu, D. Wang, and H. Lu, “Learning spatio-temporal
+transformer for visual tracking,” in Proc. IEEE/CVF Int. Conf. Comput.
+Vis. (ICCV), Oct. 2021, pp. 10428–10437.
+[7] H. Huang, A. Yu, and R. He, “Memory oriented transfer learning for
+semi-supervised image deraining,” in Proc. IEEE/CVF Conf. Comput.
+Vis. Pattern Recognit. (CVPR), Jun. 2021, pp. 7728–7737.
+[8] Z. Chen, Q. Li, H. Feng, Z. Xu, and Y . Chen, “Nonuniformly
+dehaze network for visible remote sensing images,” in Proc. IEEE/CVF
+Conf. Comput. Vis. Pattern Recognit. Workshops (CVPRW), Jun. 2022,
+pp. 446–455.
+[9] Z. Chen, Y . Wang, Y . Yang, and D. Liu, “PSD: Principled synthetic-
+to-real dehazing guided by physical priors,” in Proc. IEEE/CVF Conf.
+Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021, pp. 7176–7185.
+[10] W.-T. Chen et al., “ALL snow removed: Single image desnowing
+algorithm using hierarchical dual-tree complex wavelet representation
+and contradict channel loss,” in Proc. IEEE/CVF Int. Conf. Comput.
+Vis. (ICCV), Oct. 2021, pp. 4176–4185.
+[11] K. Zhang, D. Li, W. Luo, and W. Ren, “Dual attention-in-attention model
+for joint rain streak and raindrop removal,” IEEE Trans. Image Process.,
+vol. 30, pp. 7608–7619, 2021.
+[12] R. Qian, R. T. Tan, W. Yang, J. Su, and J. Liu, “Attentive generative
+adversarial network for raindrop removal from a single image,” in
+Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit., Jun. 2018,
+pp. 2482–2491.
+[13] K. Zhang et al., “Beyond monocular deraining: Parallel stereo deraining
+network via semantic prior,” Int. J. Comput. Vis., vol. 2022, pp. 1–16,
+Jan. 2022.
+[14] S. W. Zamir et al., “Multi-stage progressive image restoration,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,
+pp. 14816–14826.
+[15] J. Liang, J. Cao, G. Sun, K. Zhang, L. Van Gool, and R. Timofte,
+“SwinIR: Image restoration using Swin transformer,” inProc. IEEE/CVF
+Int. Conf. Comput. Vis. Workshops (ICCVW), Oct. 2021, pp. 1833–1844.
+[16] Z. Wang, X. Cun, J. Bao, W. Zhou, J. Liu, and H. Li, “Uformer:
+A general U-shaped transformer for image restoration,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2022,
+pp. 17683–17693.
+[17] S. W. Zamir, A. Arora, S. Khan, M. Hayat, F. S. Khan, and M. Yang,
+“Restormer: Efficient transformer for high-resolution image restoration,”
+in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR),
+Jun. 2022, pp. 5718–5729.
+[18] Z. Tu et al., “MAXIM: Multi-axis MLP for image processing,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2022,
+pp. 5759–5770.
+[19] R. Li, R. T. Tan, and L.-F. Cheong, “All in one bad weather removal
+using architectural search,” in Proc. IEEE/CVF Conf. Comput. Vis.
+Pattern Recognit. (CVPR), Jun. 2020, pp. 3172–3182.
+[20] H. Chen et al., “Pre-trained image processing transformer,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,
+pp. 12294–12305.
+[21] B. Li, X. Liu, P. Hu, Z. Wu, J. Lv, and X. Peng, “All-in-one image
+restoration for unknown corruption,” in Proc. IEEE/CVF Conf. Comput.
+Vis. Pattern Recognit. (CVPR), Jun. 2022, pp. 17431–17441.
+[22] J. M. Jose Valanarasu, R. Yasarla, and V . M. Patel, “TransWeather:
+Transformer-based restoration of images degraded by adverse weather
+conditions,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2022, pp. 2343–2353.
+[23] T. Gao, Y . Wen, K. Zhang, P. Cheng, and T. Chen, “Towards an
+effective and efficient transformer for rain-by-snow weather removal,”
+2023, arXiv:2304.02860.
+[24] W. Yu et al., “MetaFormer is actually what you need for vision,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2022,
+pp. 10809–10819.
+[25] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional net-
+works for biomedical image segmentation,” in Proc. Int. Conf. Med.
+Image Comput. Comput.-Assist. Intervent. Cham, Switzerland: Springer,
+2015, pp. 234–241.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 12
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1897
+[26] X. Fu, J. Huang, X. Ding, Y . Liao, and J. Paisley, “Clearing the skies:
+A deep network architecture for single-image rain removal,”IEEE Trans.
+Image Process., vol. 26, no. 6, pp. 2944–2956, Jun. 2017.
+[27] Y .-F. Liu, D.-W. Jaw, S.-C. Huang, and J.-N. Hwang, “DesnowNet:
+Context-aware deep network for snow removal,” IEEE Trans. Image
+Process., vol. 27, no. 6, pp. 3064–3073, Jun. 2018.
+[28] Z. Qin, P. Zhang, F. Wu, and X. Li, “FcaNet: Frequency channel
+attention networks,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+Oct. 2021, pp. 763–772.
+[29] T. Yao, Y . Pan, Y . Li, C.-W. Ngo, and T. Mei, “Wave-ViT: Unifying
+wavelet and transformers for visual representation learning,” 2022,
+arXiv:2207.04978.
+[30] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A. Kirillov, and
+S. Zagoruyko, “End-to-end object detection with transformers,” in
+Proc. Eur. Conf. Comput. Vis. Cham, Switzerland: Springer, 2020,
+pp. 213–229.
+[31] S. Li et al., “Single image deraining: A comprehensive benchmark
+analysis,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2019, pp. 3833–3842.
+[32] S. Li et al., “A comprehensive benchmark analysis of single image
+deraining: Current challenges and future perspectives,” Int. J. Comput.
+Vis., vol. 129, no. 4, pp. 1301–1322, Apr. 2021.
+[33] H. Zhang and V . M. Patel, “Density-aware single image de-raining using
+a multi-stream dense network,” in Proc. IEEE/CVF Conf. Comput. Vis.
+Pattern Recognit., Jun. 2018, pp. 695–704.
+[34] B. Li et al., “Benchmarking single-image dehazing and beyond,” IEEE
+Trans. Image Process., vol. 28, no. 1, pp. 492–505, Jan. 2019.
+[35] X. Guo, Y . Yang, C. Wang, and J. Ma, “Image dehazing via enhance-
+ment, restoration, and fusion: A survey,” Inf. Fusion, vols. 86–87,
+pp. 146–170, Oct. 2022.
+[36] R. Quan, X. Yu, Y . Liang, and Y . Yang, “Removing raindrops and
+rain streaks in one go,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+Recognit. (CVPR), Jun. 2021, pp. 9143–9152.
+[37] K. Jiang et al., “Multi-scale progressive fusion network for single image
+deraining,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2020, pp. 8343–8352.
+[38] S. Deng et al., “Detail-recovery image deraining via context aggregation
+networks,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2020, pp. 14548–14557.
+[39] D. Ren, W. Zuo, Q. Hu, P. Zhu, and D. Meng, “Progressive image derain-
+ing networks: A better and simpler baseline,” in Proc. IEEE/CVF Conf.
+Comput. Vis. Pattern Recognit. (CVPR), Jun. 2019, pp. 3932–3941.
+[40] H. Wang, Z. Yue, Q. Xie, Q. Zhao, Y . Zheng, and D. Meng, “From
+rain generation to rain removal,” in Proc. IEEE/CVF Conf. Comput. Vis.
+Pattern Recognit. (CVPR), Jun. 2021, pp. 14786–14796.
+[41] W.-T. Chen, H.-Y . Fang, J.-J. Ding, C.-C. Tsai, and S.-Y . Kuo, “JSTASR:
+Joint size and transparency-aware snow removal algorithm based on
+modified partial convolution and veiling effect removal,” in Proc. Eur.
+Conf. Comput. Vis. Cham, Switzerland: Springer, 2020, pp. 754–770.
+[42] K. Zhang, R. Li, Y . Yu, W. Luo, and C. Li, “Deep dense multi-scale
+network for snow removal using semantic and depth priors,”IEEE Trans.
+Image Process., vol. 30, pp. 7419–7431, 2021.
+[43] Y . Quan, S. Deng, Y . Chen, and H. Ji, “Deep learning for seeing through
+window with raindrops,” in Proc. IEEE/CVF Int. Conf. Comput. Vis.
+(ICCV), Oct. 2019, pp. 2463–2471.
+[44] S. You, R. T. Tan, R. Kawakami, Y . Mukaigawa, and K. Ikeuchi,
+“Adherent raindrop modeling, detection and removal in video,” IEEE
+Trans. Pattern Anal. Mach. Intell., vol. 38, no. 9, pp. 1721–1733,
+Sep. 2016.
+[45] Z. Hao, S. You, Y . Li, K. Li, and F. Lu, “Learning from synthetic
+photorealistic raindrop for single image raindrop removal,” in Proc.
+IEEE/CVF Int. Conf. Comput. Vis. Workshop (ICCVW) , Oct. 2019,
+pp. 4340–4349.
+[46] M.-W. Shao, L. Li, D.-Y . Meng, and W.-M. Zuo, “Uncertainty guided
+multi-scale attention network for raindrop removal from a single image,”
+IEEE Trans. Image Process., vol. 30, pp. 4828–4839, 2021.
+[47] D. M. Nguyen, T. P. Le, D. M. V o, and S.-W. Lee, “UnfairGAN:
+An enhanced generative adversarial network for raindrop removal from a
+single image,” Expert Syst. Appl., vol. 210, Dec. 2022, Art. no. 118232.
+[48] H. Dong et al., “Multi-scale boosted dehazing network with dense
+feature fusion,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2020, pp. 2154–2164.
+[49] H. Wu et al., “Contrastive learning for compact single image dehazing,”
+in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR),
+Jun. 2021, pp. 10546–10555.
+[50] H. Zhang, V . Sindagi, and V . M. Patel, “Joint transmission map esti-
+mation and dehazing using deep networks,” IEEE Trans. Circuits Syst.
+Video Technol., vol. 30, no. 7, pp. 1975–1986, Jul. 2020.
+[51] D. Berman, T. Treibitz, and S. Avidan, “Non-local image dehazing,” in
+Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2016,
+pp. 1674–1682.
+[52] B. Li, X. Peng, Z. Wang, J. Xu, and D. Feng, “AOD-Net: All-in-
+one dehazing network,” in Proc. IEEE Int. Conf. Comput. Vis. (ICCV),
+Oct. 2017, pp. 4780–4788.
+[53] X. Liu, Y . Ma, Z. Shi, and J. Chen, “GridDehazeNet: Attention-based
+multi-scale network for image dehazing,” in Proc. IEEE/CVF Int. Conf.
+Comput. Vis. (ICCV), Oct. 2019, pp. 7313–7322.
+[54] Z. Zha, X. Yuan, B. Wen, J. Zhou, J. Zhang, and C. Zhu, “From
+rank estimation to rank approximation: Rank residual constraint for
+image restoration,” IEEE Trans. Image Process., vol. 29, pp. 3254–3269,
+2020.
+[55] Z. Zha, X. Yuan, J. Zhou, C. Zhu, and B. Wen, “Image restoration
+via simultaneous nonlocal self-similarity priors,” IEEE Trans. Image
+Process., vol. 29, pp. 8561–8576, 2020.
+[56] P. Liu, H. Zhang, K. Zhang, L. Lin, and W. Zuo, “Multi-level wavelet-
+CNN for image restoration,” in Proc. IEEE/CVF Conf. Comput. Vis.
+Pattern Recognit. Workshops (CVPRW), Jun. 2018, pp. 773–782.
+[57] S. W. Zamir et al., “Learning enriched features for real image restoration
+and enhancement,” in Proc. Eur. Conf. Comput. Vis. Cham, Switzerland:
+Springer, 2020, pp. 492–511.
+[58] X. Liu, M. Suganuma, Z. Sun, and T. Okatani, “Dual residual networks
+leveraging the potential of paired operations for image restoration,”
+in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR),
+Jun. 2019, pp. 7000–7009.
+[59] Y . Gou, B. Li, Z. Liu, S. Yang, and X. Peng, “CLEARER: Multi-scale
+neural architecture search for image restoration,” in Proc. Adv. Neural
+Inf. Process. Syst., vol. 33, 2020, pp. 17129–17140.
+[60] L. Chen, X. Lu, J. Zhang, X. Chu, and C. Chen, “HINet: Half instance
+normalization network for image restoration,” in Proc. IEEE/CVF
+Conf. Comput. Vis. Pattern Recognit. Workshops (CVPRW), Jun. 2021,
+pp. 182–192.
+[61] Q. Fan, D. Chen, L. Yuan, G. Hua, N. Yu, and B. Chen, “A general
+decoupled learning framework for parameterized image operators,”
+IEEE Trans. Pattern Anal. Mach. Intell., vol. 43, no. 1, pp. 33–47,
+Jan. 2021.
+[62] J. Zhou, C. Leong, M. Lin, W. Liao, and C. Li, “Task adaptive
+network for image restoration with combined degradation factors,” in
+Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis. Workshops (WACVW),
+Jan. 2022, pp. 1–8.
+[63] L. Liu et al., “Deep learning for generic object detection: A survey,” Int.
+J. Comput. Vis., vol. 128, no. 2, pp. 261–318, Feb. 2020.
+[64] Z. Liu et al., “Swin transformer: Hierarchical vision transformer using
+shifted windows,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+Oct. 2021, pp. 9992–10002.
+[65] S. Zheng et al., “Rethinking semantic segmentation from a sequence-
+to-sequence perspective with transformers,” in Proc. IEEE/CVF Conf.
+Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021, pp. 6877–6886.
+[66] J. Yang et al., “Focal self-attention for local–global interactions in vision
+transformers,” 2021, arXiv:2107.00641.
+[67] K. Wu, H. Peng, M. Chen, J. Fu, and H. Chao, “Rethinking and
+improving relative position encoding for vision transformer,” in Proc.
+IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2021, pp. 10013–10021.
+[68] S. Ascoli, H. Touvron, M. L. Leavitt, A. S. Morcos, G. Biroli, and
+L. Sagun, “ConViT: Improving vision transformers with soft convo-
+lutional inductive biases,” in Proc. Int. Conf. Mach. Learn., 2021,
+pp. 2286–2296.
+[69] J. Guo et al., “CMT: Convolutional neural networks meet vision trans-
+formers,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2022, pp. 12165–12175.
+[70] H. Wu et al., “CvT: Introducing convolutions to vision transformers,” in
+Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2021, pp. 22–31.
+[71] I. Beltagy, M. E. Peters, and A. Cohan, “LongFormer: The long-
+document transformer,” 2020, arXiv:2004.05150.
+[72] R. Child, S. Gray, A. Radford, and I. Sutskever, “Generating long
+sequences with sparse transformers,” 2019, arXiv:1904.10509.
+[73] I. Tolstikhin et al., “MLP-mixer: An all-MLP architecture for vision,”
+in Proc. 35th Conf. Neural Inf. Process. Syst., vol. 34, 2021,
+pp. 24261–24272.
+[74] H. Touvron et al., “ResMLP: Feedforward networks for image classifi-
+cation with data-efficient training,” 2021, arXiv:2105.03404.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 13
+1898 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY , VOL. 34, NO. 3, MARCH 2024
+[75] Q. Hou, Z. Jiang, L. Yuan, M.-M. Cheng, S. Yan, and J. Feng, “Vision
+permutator: A permutable MLP-like architecture for visual recognition,”
+IEEE Trans. Pattern Anal. Mach. Intell., vol. 45, no. 1, pp. 1328–1334,
+Jan. 2023.
+[76] H. Touvron, M. Cord, M. Douze, F. Massa, A. Sablayrolles, and
+H. Jégou, “Training data-efficient image transformers & distilla-
+tion through attention,” in Proc. Int. Conf. Mach. Learn. , 2021,
+pp. 10347–10357.
+[77] H. Liu, Z. Dai, D. So, and Q. V . Le, “Pay attention to MLPs,” in Proc.
+Int. Conf. Neural Inf. Process. Syst., vol. 34, 2021, pp. 9204–9215.
+[78] X. Fu, J. Huang, D. Zeng, Y . Huang, X. Ding, and J. Paisley, “Removing
+rain from single images via a deep detail network,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit. (CVPR), Jul. 2017, pp. 1715–1723.
+[79] H. Zhang, V . Sindagi, and V . M. Patel, “Image de-raining using a
+conditional generative adversarial network,” IEEE Trans. Circuits Syst.
+Video Technol., vol. 30, no. 11, pp. 3943–3956, Nov. 2020.
+[80] W. Yang, R. T. Tan, J. Feng, J. Liu, Z. Guo, and S. Yan, “Deep joint
+rain detection and removal from a single image,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit. (CVPR), Jul. 2017, pp. 1685–1694.
+[81] Y . Li, R. T. Tan, X. Guo, J. Lu, and M. S. Brown, “Rain streak removal
+using layer priors,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2016, pp. 2736–2744.
+[82] J. Lee-Thorp, J. Ainslie, I. Eckstein, and S. Ontanon, “FNet: Mixing
+tokens with Fourier transforms,” 2021, arXiv:2105.03824.
+[83] S. G. Mallat, “A theory for multiresolution signal decomposition:
+The wavelet representation,” IEEE Trans. Pattern Anal. Mach. Intell.,
+vol. 11, no. 7, pp. 674–693, Jul. 1989.
+[84] J. Bai, L. Yuan, S.-T. Xia, S. Yan, Z. Li, and W. Liu, “Improving vision
+transformers by revisiting high-frequency components,” in Proc. 17th
+Eur. Conf. Comput. Vis. Cham, Switzerland: Springer, 2022, pp. 1–18.
+[85] I. Loshchilov and F. Hutter, “SGDR: Stochastic gradient descent with
+warm restarts,” 2016, arXiv:1608.03983.
+[86] H. Zhang, M. Cisse, Y . N. Dauphin, and D. Lopez-Paz, “mixup: Beyond
+empirical risk minimization,” 2017, arXiv:1710.09412.
+[87] Z. Wang, A. C. Bovik, H. R. Sheikh, and E. P. Simoncelli, “Image
+quality assessment: From error visibility to structural similarity,” IEEE
+Trans. Image Process., vol. 13, no. 4, pp. 600–612, Apr. 2004.
+[88] R. Li, L.-F. Cheong, and R. T. Tan, “Heavy rain image restoration:
+Integrating physics model and conditional adversarial learning,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2019,
+pp. 1633–1642.
+[89] C. O. Ancuti et al., “NTIRE 2020 challenge on NonHomogeneous
+dehazing,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+Workshops (CVPRW), Jun. 2020, pp. 2029–2044.
+[90] C. O. Ancuti et al., “NTIRE 2021 NonHomogeneous dehazing chal-
+lenge report,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+Workshops (CVPRW), Jun. 2021, pp. 627–646.
+[91] H. Yu, N. Zheng, M. Zhou, J. Huang, Z. Xiao, and F. Zhao, “Frequency
+and spatial dual guidance for image dehazing,” in Proc. 17th Eur. Conf.
+Comput. Vis. Cham, Switzerland: Springer, 2022, pp. 181–198.
+[92] X. Li, J. Wu, Z. Lin, H. Liu, and H. Zha, “Recurrent squeeze-and-
+excitation context aggregation net for single image deraining,” in Proc.
+Eur. Conf. Comput. Vis. (ECCV), 2018, pp. 254–269.
+[93] H. Wang, Q. Xie, Q. Zhao, and D. Meng, “A model-driven deep neural
+network for single image rain removal,” in Proc. IEEE/CVF Conf.
+Comput. Vis. Pattern Recognit. (CVPR), Jun. 2020, pp. 3100–3109.
+[94] L.-C. Chen, G. Papandreou, I. Kokkinos, K. Murphy, and A. L. Yuille,
+“DeepLab: Semantic image segmentation with deep convolutional nets,
+atrous convolution, and fully connected CRFs,” IEEE Trans. Pattern
+Anal. Mach. Intell., vol. 40, no. 4, pp. 834–848, Apr. 2018.
+[95] T. Wang, X. Yang, K. Xu, S. Chen, Q. Zhang, and R. W. H. Lau, “Spatial
+attentive single-image deraining with a high quality real rain dataset,”
+in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR),
+Jun. 2019, pp. 12262–12271.
+[96] D.-W. Jaw, S.-C. Huang, and S.-Y . Kuo, “DesnowGAN: An efficient
+single image snow removal framework using cross-resolution lateral
+connection and GANs,” IEEE Trans. Circuits Syst. Video Technol.,
+vol. 31, no. 4, pp. 1342–1350, Apr. 2021.
+[97] Y . Luo, Y . Xu, and H. Ji, “Removing rain from a single image via
+discriminative sparse coding,” in Proc. IEEE Int. Conf. Comput. Vis.
+(ICCV), Dec. 2015, pp. 3397–3405.
+[98] P. Isola, J.-Y . Zhu, T. Zhou, and A. A. Efros, “Image-to-image translation
+with conditional adversarial networks,” inProc. IEEE Conf. Comput. Vis.
+Pattern Recognit. (CVPR), Jul. 2017, pp. 5967–5976.
+[99] J. Xiao, X. Fu, A. Liu, F. Wu, and Z.-J. Zha, “Image de-raining
+transformer,” IEEE Trans. Pattern Anal. Mach. Intell., early access,
+Jun. 16, 2022, doi: 10.1109/TPAMI.2022.3183612.
+[100] K. He, J. Sun, and X. Tang, “Single image haze removal using dark
+channel prior,” IEEE Trans. Pattern Anal. Mach. Intell., vol. 33, no. 12,
+pp. 2341–2353, Dec. 2011.
+[101] S. Das, Md. S. Islam, and Md. R. Amin, “GCA-Net: Utilizing
+gated context attention for improving image forgery localization and
+detection,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+Workshops (CVPRW), Jun. 2022, pp. 81–90.
+[102] X. Qin, Z. Wang, Y . Bai, X. Xie, and H. Jia, “FFA-Net: Feature fusion
+attention network for single image dehazing,” in Proc. AAAI Conf. Artif.
+Intell., 2020, vol. 34, no. 7, pp. 11908–11915.
+[103] J. Liu, H. Wu, Y . Xie, Y . Qu, and L. Ma, “Trident dehazing network,”
+in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. Workshops
+(CVPRW), Jun. 2020, pp. 1732–1741.
+[104] X. Fu, B. Liang, Y . Huang, X. Ding, and J. Paisley, “Lightweight
+pyramid networks for image deraining,” IEEE Trans. Neural Netw.
+Learn. Syst., vol. 31, no. 6, pp. 1794–1807, Jun. 2020.
+[105] A. Mittal, R. Soundararajan, and A. C. Bovik, “Making a ‘completely
+blind’ image quality analyzer,” IEEE Signal Process. Lett., vol. 20, no. 3,
+pp. 209–212, Apr. 2012.
+[106] L. Liu, B. Liu, H. Huang, and A. C. Bovik, “No-reference image quality
+assessment based on spatial and spectral entropies,” Signal Process.,
+Image Commun., vol. 29, no. 8, pp. 856–863, Sep. 2014.
+[107] S. Woo, J. Park, J.-Y . Lee, and I. S. Kweon, “CBAM: Convolutional
+block attention module,” in Proc. Eur. Conf. Comput. Vis. (ECCV), 2018,
+pp. 3–19.
+Tao Gao received the B.Sc., M.Sc., and Ph.D.
+degrees from the School of Electronics and
+Information, Northwestern Polytechnical University,
+in 2002, 2016, and 2010, respectively. He is cur-
+rently a Professor with the School of Information
+Engineering, Chang’an University, Xi’an, China. His
+current research interests include image processing
+and computer vision.
+Yuanbo Wen received the B.Sc. degree in 2021.
+He is currently pursuing the Ph.D. degree with
+the School of Information Engineering, Chang’an
+University, Xi’an, China. He is also engaging in
+the research of computer vision and intelligent
+transportation.
+Kaihao Zhang is currently pursuing the Ph.D.
+degree with the College of Engineering and Com-
+puter Science, The Australian National Univer-
+sity, Canberra, ACT, Australia. He has more than
+30 refereed publications in international conferences
+and journals, including the CVPR, ICCV , ECCV ,
+NeurIPS, AAAI, ACM Multimedia, IEEE T RANS -
+ACTIONS ON PATTERN ANALYSIS AND MACHINE
+INTELLIGENCE , International Journal of Computer
+Vision, IEEE T RANSACTIONS ON IMAGE PRO-
+CESSING , and IEEE T RANSACTIONS ON MULTI-
+MEDIA . His research interests focus on computer vision and deep learning.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+PAGE 14
+GAO et al.: FREQUENCY-ORIENTED EFFICIENT TRANSFORMER 1899
+Jing Zhang is currently a Post-Doctoral Researcher
+with the School of Computing, The Australian
+National University, Canberra, Australia. Her main
+research interests include saliency detection, weakly
+supervised learning, and generative model. She won
+the Best Student Paper Prize at DICTA 2017, the
+Best Deep/Machine Learning Paper Prize at APSIPA
+ASC 2017, and the Best Paper Award Nominee at
+IEEE CVPR 2020.
+Ting Chen received the Ph.D. degree in informa-
+tion and communication engineering from Xidian
+University in 2011. She is currently an Assistant
+Professor with the School of Information Engineer-
+ing, Chang’an University, Xi’an, China. Her research
+interests include image processing and wireless
+networks.
+Lidong Liu received the B.S. and M.S. degrees
+in control theory and control engineering from
+Southwest Jiaotong University in 2005 and 2008,
+respectively, and the Ph.D. degree in signal and
+information processing from the University of Elec-
+tronics Science and Technology of China in 2012.
+He is currently a Professor with Chang’an Univer-
+sity. He is the authored or coauthored more than
+40 papers in signal processing, control theory, and
+computational nonlinear journals and conferences.
+He has been involved with more than ten projects
+supported by the National Natural Science Foundation of China and Natural
+Science Foundation of Shanxi Province. His current research interests include
+image processing and secure communication.
+Wenhan Luo (Senior Member, IEEE) received the
+B.E. degree from the Huazhong University of Sci-
+ence and Technology, China, in 2009, the M.E.
+degree from the Institute of Automation, Chinese
+Academy of Sciences, China, in 2012, and the Ph.D.
+degree from the Imperial College London, U.K.,
+2016. He is currently an Associate Professor with
+Sun Yat-sen University. Prior to that, he worked
+as a Research Scientist with Tencent and Ama-
+zon. He has published more than 40 papers in
+top conferences and leading journals, including the
+ICML, CVPR, ICCV , ECCV , ACL, AAAI, ICLR, IEEE TRANSACTIONS ON
+PATTERN ANALYSIS AND MACHINE INTELLIGENCE , International Journal
+of Computer Vision, and IEEE T RANSACTIONS ON IMAGE PROCESSING .
+He has been a reviewer, a senior PC member, and a guest editor of
+several prestigious journals and conferences. His research interests include
+several topics in computer vision and machine learning, such as image/video
+synthesis, image/video quality restoration, and reinforcement learning.
+Authorized licensed use limited to: VNR Vignana Jyothi Inst of Eng & Tech. Downloaded on October 13,2026 at 06:11:21 UTC from IEEE Xplore.  Restrictions apply. 

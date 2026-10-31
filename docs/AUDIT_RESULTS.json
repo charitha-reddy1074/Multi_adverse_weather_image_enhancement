@@ -1,0 +1,47 @@
+{
+  "status": "NOT FULLY VERIFIED",
+  "iterations": 5,
+  "tests": {
+    "tests": 62,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "bandit": {
+    "CONFIDENCE.HIGH": 15,
+    "CONFIDENCE.LOW": 0,
+    "CONFIDENCE.MEDIUM": 5,
+    "CONFIDENCE.UNDEFINED": 0,
+    "SEVERITY.HIGH": 0,
+    "SEVERITY.LOW": 20,
+    "SEVERITY.MEDIUM": 0,
+    "SEVERITY.UNDEFINED": 0,
+    "loc": 1480,
+    "nosec": 0,
+    "skipped_tests": 0
+  },
+  "dependency_advisories": 0,
+  "dependency_scan_skips": [
+    {
+      "name": "torch",
+      "skip_reason": "Dependency not found on PyPI and could not be audited: torch (2.13.0+cu130)"
+    },
+    {
+      "name": "torchvision",
+      "skip_reason": "Dependency not found on PyPI and could not be audited: torchvision (0.28.0+cu130)"
+    }
+  ],
+  "model_tensor_code_changed": false,
+  "architecture_reverification": {
+    "status": "COMPLETE MAIN-PAPER REVIEW - NOT EXACT IMPLEMENTATION",
+    "report": "docs/architecture/README.md",
+    "model_and_loss_operations_changed": false,
+    "confirmed_high_research_deviations": [
+      "A01",
+      "A02",
+      "A05",
+      "A06",
+      "A10"
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "torch": "2.13.0+cu130",
+  "device": "cuda",
+  "gpu": "NVIDIA RTX 2000 Ada Generation",
+  "input_shape": [
+    1,
+    3,
+    128,
+    128
+  ],
+  "output_shape": [
+    1,
+    3,
+    128,
+    128
+  ],
+  "parameters": 271155,
+  "inference_seconds": 0.023501933333288132,
+  "inference_peak_allocated_bytes": 89984000,
+  "training_step_seconds": 1.1107584999999744,
+  "training_amp": true,
+  "training_peak_allocated_bytes": 219691520,
+  "losses": [
+    3.7899460792541504,
+    3.1046018600463867,
+    2.434708595275879
+  ],
+  "amp_attempts": 6,
+  "amp_final_scale": 8192.0,
+  "fixed_input_output": {
+    "sum": 35998.12890625,
+    "mean": 0.7323838472366333,
+    "first": [
+      0.7642651796340942,
+      0.08680560439825058,
+      0.5842496156692505,
+      0.11271180212497711,
+      0.33422714471817017,
+      0.522101104259491,
+      0.8979198932647705,
+      0.47671157121658325
+    ]
+  },
+  "note": "Random pilot model diagnostic; no trained benchmark performance claim."
+}

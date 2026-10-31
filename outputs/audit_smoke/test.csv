@@ -1,0 +1,2 @@
+input_path,target_path,weather_type,source_dataset,split,scene_id
+D:\Multi_adverse_weather_image_enhancement\data\raw\extracted\Rain14000\rainy_image_dataset\testing\rainy_image\1000_1.jpg,D:\Multi_adverse_weather_image_enhancement\data\raw\extracted\Rain14000\rainy_image_dataset\testing\ground_truth\1000.jpg,rain,Rain14000,test,1000

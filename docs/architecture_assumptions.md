@@ -1,83 +1,37 @@
-# AIRFormer reproduction decisions
+﻿# AIRFormer assumptions and confirmed deviations
 
-The uploaded AIRFormer paper is the primary source. The original implementation
-and pretrained weights are unavailable in this workspace. Accordingly, this
-repository is an independent, paper-guided implementation and does not claim
-bitwise or parameter-level equivalence with the authors' code.
+The supplied main-paper review is complete. The implementation is **NOT EXACT**.
+The current authoritative matrix is `PAPER_COMPLIANCE.md`; the illustrated code
+walkthrough and extracted original figures are in `architecture/README.md`.
+Older assertions that the model fully matches Figure 4/5 are superseded.
 
-## Evidence categories
+Confirmed deviations: Figure 4 draws four encoder block positions while the code
+fixes three levels; SP is added after the current block instead of before the
+subsequent block; spatial attention caps K/V; wavelet attention has reduced-grid
+Q and lacks the separate IDWT concatenation path; its first LayerNorm is after
+DWT. The paper-oriented config has 1,146,883 parameters, whereas Table XIII
+reports 58.34 million. Literal Equation 12 uses a different reduction order from
+the conventional elementwise Smooth L1 in this implementation.
 
-### A — stated in the AIRFormer paper
+Unresolved reconstruction choices: base widths, block depths N, attention heads,
+patch kernel/stride/padding, GN group count, MLP expansion/GELU placement,
+attention scaling/L2 normalization, task-query composition and initialization,
+Haar family and boundary replication, SP filtering/fusion details, skip-tail
+upsampling/fusion and the global RGB residual. The main paper does not supply
+all these values. No supplementary architecture specification or original
+checkpoint/source code is locally available to resolve them.
 
-- A single all-in-one restoration model covers rain streaks, raindrops, snow,
-  and haze.
-- Figure 4 (paper page 3) confirms the top-level flow: patch embeddings feed a
-  hierarchical frequency-guided encoder; Supplementary Prior guides encoder
-  learning; the frequency-refined decoder uses encoder and decoder features for
-  reconstruction.
-- Figure 5 and Section III-B confirm that the decoder refines features with
-  channel, spatial, and wavelet-domain self-attention, each constrained by
-  task-biased learned vectors together with input features. The paper's ablation
-  discussion confirms the primary order Channel → Space → Wavelet.
-- The encoder receives wavelet-based prior information; the decoder uses
-  learnable task-specific queries across spatial, channel, and wavelet domains.
-- AIR40K combines examples from multiple existing weather datasets.
-- Training values currently encoded from the available project notes are:
-  256-pixel crops, AdamW (0.9/0.999, weight decay 1e-4), initial LR 2e-4,
-  cosine decay to 1e-7, flips/90-degree rotations, MixUp probability 0.5,
-  and frequency-loss weight 0.04. Epoch count and batch size need confirmation
-  against the paper PDF and remain configurable.
-- Evaluation pads to a multiple of 128 and reports PSNR/SSIM.
+Verified specific properties: one shared all-weather model; GN/mixer/residual
+and GN/MLP/residual encoder pattern; active frequency priors; initial SP zero
+condition; channel/spatial relationships; active learned queries; invertible
+wavelet implementation; Channel -> Space -> Wavelet order; second decoder MLP
+residuals; reported optimizer/constants/augmentations and evaluation tools.
+Verification of these individual properties does not certify whole modules.
 
-### B — standard cited operations
+The code preserves a valid Haar DWT/IDWT and differentiable DCT-II. Their tests
+establish algorithmic behavior, not that the authors used the same filter family,
+normalization, query dimensions or reconstructed architecture.
 
-- PoolFormer token mixing uses `AvgPool2d(3, stride=1, padding=1) - X` with
-  residual addition, followed by normalized pointwise/depthwise MLP mixing.
-- The wavelet transform here is a one-level orthonormal Haar DWT. The four
-  subbands use the conventional 2x2 Haar basis.
-- PSNR and SSIM are computed with `skimage.metrics` on RGB images with data
-  range 1.0.
-
-### C — unresolved implementation choices
-
-- Base feature width, block counts, attention head count, exact normalization,
-  query tensor shapes/initialization, wavelet boundary handling, and feature
-  fusion details are not established by the available source files. The paper
-  configuration's 32-channel width and two blocks per level are explicit
-  engineering defaults, not paper specifications. The pilot shrinks these.
-- The checked-in `.dist/paper.txt` extraction supplies the Figure 4 caption and
-  surrounding architecture text. The PDF figure pixels themselves are not
-  available for detailed visual inspection in this execution environment, so
-  Figure 4 supports the top-level mapping, not unprinted block internals.
-- DWT uses replicate padding on odd dimensions, then crops the inverse output
-  back to the original shape. The fixed Haar basis is an engineering choice;
-  it is not claimed as the paper's exact wavelet family.
-- In the Supplementary Prior, the Haar approximation band (LL) passes through
-  unchanged while depthwise spatial filtering is applied to LH/HL/HH. A learned
-  pointwise fusion then combines the preserved approximation, filtered details,
-  current encoder features, and prior-stage guidance, matching Equations 9–10's
-  stated low-frequency preservation/high-frequency filtering behavior.
-- The first SP stage receives zero encoder and prior inputs as stated around
-  Equation 10. Later stages receive their corresponding encoder features and
-  the previous SP feature; the resulting guidance is added to encoder features.
-- Figure 5's text confirms that queries are partly task-derived and partly
-  feature-dependent, but the exact projection equations and tensor dimensions
-  are not specified in the extracted text. This implementation forms Q with a
-  learned per-domain query bias added to projected input Q; `query_combine`
-  offers additive or gated variants. Treat that combination as an inference,
-  not a claim of exact author-code equivalence.
-- Spatial/wavelet attention keeps full-resolution queries but adaptively pools
-  keys and values above `max_spatial_tokens`. This is a documented memory-saving
-  approximation. Channel, space, and wavelet attention remains ordered as stated.
-- The residual RGB skip is enabled as an engineering adaptation; it is not
-  claimed as a confirmed paper choice. Set `residual_image: false` to ablate it.
-- Equations 11–13 are implemented in `losses/multidomain.py`: orthonormal DCT-II,
-  `sqrt(sum(diff**2) + 0.001**2)`, and Smooth L1 + 0.04 times the frequency
-  term. Reduction is explicit: elementwise Smooth L1 mean over B,C,H,W; one
-  DCT Frobenius norm over C,H,W per sample, then mean over batch.
-- AIR40K's exact sample manifest and split recipe are not available in the
-  checked-in files. The loader accepts normalized paired folders; users must
-  preserve official splits and dataset terms when assembling them.
-
-Do not use this reproduction to claim the authors' checkpoint results without
-training and evaluation on the corresponding official splits.
+No model/loss math changed in the annotation review. Tests pass for the current
+reconstruction, not for a corrected strict-paper graph. Do not present the
+current model as the exact architecture in the research paper.

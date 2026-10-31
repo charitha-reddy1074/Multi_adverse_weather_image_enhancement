@@ -1,0 +1,35 @@
+{
+  "seed": 42,
+  "archives": {
+    "Rain14000": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\Rain14000.zip",
+      "sha256": "c967e0bc33e2ab70828aa614c000024a695b532684ddced9b83a75b941e91674",
+      "bytes": 898292342
+    },
+    "Rain12": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\Rain12.zip",
+      "sha256": "3ba5f100149158a8f6378b48203646565fd21a7b394b4ef33124ff5c4fae0581",
+      "bytes": 7351249
+    }
+  },
+  "pairs": 14012,
+  "counts": {
+    "Rain14000/train": 11970,
+    "Rain14000/val": 630,
+    "Rain14000/test": 1400,
+    "Rain12/test": 12
+  },
+  "issues": [],
+  "duplicate_inputs": [
+    [
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\240_7.jpg",
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\240_6.jpg"
+    ],
+    [
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\700_5.jpg",
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\700_2.jpg"
+    ]
+  ],
+  "duplicate_policy": "Preserve documented within-split source-release duplicates; cross-split copies are fatal.",
+  "status": "READY"
+}

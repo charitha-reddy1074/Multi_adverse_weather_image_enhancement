@@ -2,7 +2,8 @@
 import argparse
 import csv
 from pathlib import Path
-from urllib.request import Request, urlopen
+from urllib.parse import urlparse
+import requests
 
 
 def main():
@@ -13,9 +14,14 @@ def main():
         for row in csv.DictReader(f):
             url=row["source_or_project_url"]
             try:
-                req=Request(url,method="HEAD",headers={"User-Agent":"AIRFormer-reproduction/1.0"})
-                with urlopen(req,timeout=20) as res:
-                    print(f"REACHABLE {res.status} {row['dataset']} {url}")
+                if urlparse(url).scheme != "https":
+                    raise ValueError("Only HTTPS source pages are permitted")
+                # Do not follow an external redirect to another URL scheme.
+                # A redirect is recorded as a source-page response, not an archive.
+                with requests.head(url,allow_redirects=False,timeout=20,
+                        headers={"User-Agent":"AIRFormer-reproduction/1.0"}) as res:
+                    res.raise_for_status()
+                    print(f"REACHABLE {res.status_code} {row['dataset']} {url}")
             except Exception as e:
                 print(f"UNVERIFIED {row['dataset']} {url}: {type(e).__name__}: {e}")
     print("This command checks project pages only; download archives from owner instructions after verifying format, terms, and pairing.")

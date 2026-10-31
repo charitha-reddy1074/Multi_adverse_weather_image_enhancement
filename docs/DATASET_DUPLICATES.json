@@ -1,0 +1,14 @@
+{
+  "input_samples": 14012,
+  "unique_input_byte_hashes": 14010,
+  "duplicate_inputs": [
+    [
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\240_7.jpg",
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\240_6.jpg"
+    ],
+    [
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\700_5.jpg",
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\700_2.jpg"
+    ]
+  ]
+}

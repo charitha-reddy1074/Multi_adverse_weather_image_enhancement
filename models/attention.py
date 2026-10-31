@@ -13,6 +13,9 @@ class QueriedAttention(nn.Module):
     tokens; `wavelet` attends over DWT coefficients and reconstructs with IDWT.
     The additive task query is an explicit engineering interpretation of the
     paper's task-biased, partly feature-derived Q description.
+
+    A04-A06 in docs/architecture/README.md record the non-equivalences:
+    broadcast query bias, pooled spatial K/V, and a different wavelet graph.
     """
     def __init__(self, channels, mode, heads=4, max_spatial_tokens=1024,
                  query_combine="add", use_task_query=True):
@@ -35,6 +38,8 @@ class QueriedAttention(nn.Module):
         self.v_proj = nn.Conv2d(self.q_channels, self.q_channels, 1)
         self.out_proj = nn.Conv2d(self.q_channels, self.q_channels, 1)
         query_shape = (1, heads, self.dim, 1) if mode == "channel" else (1, heads, 1, self.dim)
+        # A04: a broadcast feature-channel bias, not a separately projected
+        # task-query tensor as drawn in Fig. 5. Text leaves composition unclear.
         self.task_query = nn.Parameter(torch.zeros(*query_shape))
         self.norm2 = nn.LayerNorm(channels)
         hidden = channels * 2
@@ -53,6 +58,9 @@ class QueriedAttention(nn.Module):
     def forward(self, x):
         residual=x
         if self.mode == "wavelet":
+            # A06: Q, K and V all use the reduced wavelet grid in this code.
+            # Fig. 5(c) instead shows Q at HW and K/V at HW/4, plus an IDWT
+            # branch concatenated with attention output. This is a known mismatch.
             coeffs, size = dwt2(x)
             b, c, bands, hh, ww = coeffs.shape
             kv_in = coeffs.reshape(b, c*bands, hh, ww)
@@ -63,7 +71,8 @@ class QueriedAttention(nn.Module):
         k=self._split(self.k_proj(kv_in))
         v=self._split(self.v_proj(kv_in))
         if self.mode == "channel":
-            # Channel tokens attend over channel tokens after spatial whitening.
+            # Each head attends between C/head channel vectors. L2 normalization
+            # of spatial vectors is a chosen detail; it is not whitening.
             q=F.normalize(q.transpose(-1,-2),dim=-1)
             k=F.normalize(k.transpose(-1,-2),dim=-1)
             bias=self.task_query
@@ -74,7 +83,8 @@ class QueriedAttention(nn.Module):
             y=y.transpose(-1,-2)
         else:
             if k.shape[-2] > self.max_tokens:
-                # Reduced-resolution K/V retains full-resolution queries.
+                # A05: capped K/V is an approximation absent from Fig. 5(b)'s
+                # HW-by-HW spatial attention; do not call it paper-exact.
                 side=max(1,int(math.sqrt(self.max_tokens)))
                 small=F.adaptive_avg_pool2d(kv_in,(side,side))
                 k=self._split(self.k_proj(small)); v=self._split(self.v_proj(small))
@@ -92,12 +102,14 @@ class QueriedAttention(nn.Module):
             y=y.transpose(-1,-2).reshape(b,self.channels,h,w)
             update=self.out_proj(y)
         if self.mode == "wavelet":
-            # Attention output gates/refines the real wavelet coefficients;
-            # inverse transform returns a spatial feature at original size.
+            # A06: invert the attention result, then add the spatial residual.
+            # There is no separate IDWT/attention concat branch from Fig. 5(c).
             update=update + residual
             x=update
         else:
             x=residual+update
+        # All modes have attention + residual, then pre-LN depthwise MLP + residual.
+        # Wavelet norm1 is applied after DWT above, unlike the outer LN in Fig. 5.
         return x+self.mlp(self._layer_norm(x,self.norm2))
 
 

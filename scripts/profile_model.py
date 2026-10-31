@@ -43,7 +43,7 @@ def main():
         "residual_image":bool(cfg.get("residual_image",True))}
     model=AIRFormer(**model_cfg).to(device)
     if a.checkpoint:
-        state=torch.load(a.checkpoint,map_location=device)
+        state=torch.load(a.checkpoint,map_location="cpu",weights_only=True)
         if "model_config" in state:
             model_cfg=state["model_config"]
             model=AIRFormer(**model_cfg).to(device)

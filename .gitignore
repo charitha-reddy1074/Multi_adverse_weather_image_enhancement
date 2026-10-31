@@ -1,4 +1,6 @@
 __pycache__/
+.venv/
+.cache/
 *.py[cod]
 .pytest_cache/
 .dist/
@@ -10,4 +12,5 @@ outputs/*
 results/
 data/raw/
 data/manifests/*.csv
+data/manifests/*.json
 datasets/AIR40K/

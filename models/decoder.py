@@ -8,6 +8,8 @@ from .attention import (ChannelQueriedSelfAttention, SpaceQueriedSelfAttention,
 
 class FrequencyRefinementBlock(nn.Module):
     """Figure 5 refinement sequence; the paper's preferred order is default."""
+    # VERIFIED: Table XII / V-A (PDF p10, printed 1895) supports this order.
+    # Correct ordering does not verify each attention block's internal graph.
     ORDER = ("channel", "space", "wavelet")
     def __init__(self, channels, order=ORDER, heads=4, max_spatial_tokens=1024,
                  query_combine="add", use_task_queries=True,mode="frequency"):
@@ -37,6 +39,11 @@ class FrequencyRefinementBlock(nn.Module):
 
 
 class DecoderStage(nn.Module):
+    """Assumed bilinear-upsample/concat/project/conv/attention reconstruction.
+
+    A07: Fig. 4 names a decoder and hierarchical tail but does not establish this
+    two-stage U-shaped implementation or an attention stack at every skip level.
+    """
     def __init__(self, in_channels, skip_channels, out_channels, attention_order,
                  heads, max_spatial_tokens, query_combine,use_task_queries,
                  decoder_mode):
@@ -48,6 +55,7 @@ class DecoderStage(nn.Module):
                                      query_combine,use_task_queries,decoder_mode))
 
     def forward(self, x, skip):
+        # Align this decoder feature to the encoder skip; targets are not resized.
         x=F.interpolate(x,size=skip.shape[-2:],mode="bilinear",align_corners=False)
         return self.refine(self.project(torch.cat((x,skip),dim=1)))
 

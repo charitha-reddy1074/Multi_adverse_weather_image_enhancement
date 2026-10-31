@@ -1,4 +1,4 @@
-"""Equation 11-13 spatial and DCT-domain consistency loss."""
+"""DCT consistency plus conventional Smooth L1; printed Eq. 12 differs (A09)."""
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -34,7 +34,10 @@ class MultiDomainConsistencyLoss(nn.Module):
 
     Reduction policy: PyTorch elementwise Smooth L1 mean across B,C,H,W;
     frequency coefficients use one Frobenius norm per image across C,H,W,
-    followed by a mean over batch. The paper leaves these reductions implicit.
+    followed by a mean over batch. A09: printed Eq. (12) defines E as a spatial
+    mean residual *before* the piecewise penalty; this implementation averages
+    elementwise penalties instead. They differ on cancellation examples. The
+    conventional choice is retained, but must not be claimed literally exact.
     """
     def __init__(self,lambda_freq=0.04,eps=0.001):
         super().__init__()
@@ -44,6 +47,7 @@ class MultiDomainConsistencyLoss(nn.Module):
     def forward(self,pred,target):
         if pred.shape!=target.shape or pred.ndim!=4:
             raise ValueError("pred and target must have equal NCHW shapes")
+        # A09: mean SmoothL1(error), not SmoothL1(mean(error)) in printed Eq. 12.
         spatial=F.smooth_l1_loss(pred.float(),target.float(),reduction="mean")
         difference=(dct2(pred)-dct2(target)).flatten(1)
         frequency=torch.sqrt(difference.square().sum(dim=1)+self.eps**2).mean()

@@ -1,0 +1,35 @@
+attention_heads: 2
+balance_weather: false
+base_channels: 4
+batch_size: 1
+betas:
+- 0.9
+- 0.999
+crop_size: 32
+dataset_root: datasets/AIR40K/train
+decoder_mode: frequency
+encoder_token_mixer: pooling
+epochs: 2
+gradient_accumulation_steps: 2
+gradient_checkpointing: false
+lambda_freq: 0.04
+lr: 0.0002
+max_spatial_tokens: 16
+min_lr: 1.0e-06
+mixed_precision: true
+mixup_prob: 0.5
+num_workers: 0
+query_combine: add
+residual_image: true
+seed: 42
+stage_blocks:
+- 1
+- 1
+- 1
+test_pad_multiple: 128
+train_manifest: D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\train.csv
+use_frequency_decoder: true
+use_supplementary_prior: true
+use_task_queries: true
+val_manifest: D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\val.csv
+weight_decay: 0.0001

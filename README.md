@@ -1,11 +1,33 @@
-# AIRFormer: weather restoration reproduction
+# AIRFormer-inspired weather restoration reconstruction
 
-This repository contains an independent PyTorch reconstruction of **AIRFormer** by Tao Gao et al., *Frequency-Oriented Efficient Transformer for All-in-One Weather-Degraded Image Restoration*, IEEE TCSVT 34(3), 2024 ([DOI](https://doi.org/10.1109/TCSVT.2023.3299324)). The authors' source repository and pretrained weights were unavailable during this implementation. This code follows the paper and its figures/equations, while recording unresolved details as explicit engineering assumptions in [`docs/architecture_assumptions.md`](docs/architecture_assumptions.md). It does not claim exact equivalence to unpublished code or report fabricated results.
+**Architecture re-verification: NOT EXACT.** The main-paper comparison is complete
+and found confirmed graph differences. Read the illustrated
+[architecture comparison README](docs/architecture/README.md) before describing
+this as a paper implementation. Three encoder levels, SP placement, pooled
+spatial K/V, the wavelet attention/IDWT graph, assumed query/tail details, and
+literal Equation 12 reduction prevent an exact reproduction claim. The paper
+configuration has 1,146,883 parameters versus the paper's reported 58.34 million.
+
+The model's tensor logic is unchanged by this documentation/comment review.
+CUDA setup, 62 tests, real-pair training/resume/inference/evaluation smoke checks
+pass. Rain14000 and Rain12 are downloaded and validated; other required datasets
+are blocked/partial. Figures 4/5, Equations 9-13 and Tables XII/XIII were inspected
+in the supplied 14-page PDF. Original code/supplementary implementation details
+remain unavailable locally; the main-paper review cannot certify those settings.
+Start with [local training instructions](docs/TRAINING_READY.md),
+[audit findings](docs/AUDIT_REPORT.md), [paper compliance](docs/PAPER_COMPLIANCE.md),
+and [actual dataset status](docs/DATASET_STATUS.md).
+
+After training once, load the saved checkpoint for testing/demonstrations;
+**retraining is not required each time**. The tiny audit checkpoint is diagnostic
+only and is not a pretrained restoration model.
+
+This repository contains an independent PyTorch reconstruction inspired by **AIRFormer** by Tao Gao et al., *Frequency-Oriented Efficient Transformer for All-in-One Weather-Degraded Image Restoration*, IEEE TCSVT 34(3), 2024 ([DOI](https://doi.org/10.1109/TCSVT.2023.3299324)). The authors' source repository and pretrained weights were unavailable during implementation. The code implements selected paper ideas with documented topology differences and engineering assumptions. It is not the exact architecture depicted in the paper and does not report fabricated reproduction results.
 
 ## What is implemented
 
 - One RGB restoration model for rain streaks, adherent raindrops, snow, and haze.
-- Convolutional patch embedding, a hierarchical PoolFormer-style encoder, Haar-wavelet Supplementary Prior modules, and hierarchical reconstruction.
+- Convolutional patch embedding, a three-level PoolFormer-style encoder, Haar-wavelet prior approximations, and a chosen U-shaped reconstruction tail.
 - Decoder refinement in the paper's preferred **Channel → Space → Wavelet** order, with learned task-biased query parameters.
 - Smooth L1 plus weighted DCT frequency loss, paired-image loading, matched crops/augmentations, training/validation, checkpoint resume, inference, PSNR/SSIM evaluation, and result visualization.
 - Paper-oriented and memory-oriented YAML configurations, dataset provenance catalog, manifest construction/verification, and component ablation controls.
@@ -14,7 +36,12 @@ Read the [architecture assumptions](docs/architecture_assumptions.md), [dataset 
 
 ## Readiness and items you must supply
 
-The repository is ready to install and run once a compatible Python/PyTorch environment and paired image data are supplied. It does **not** include dataset archives, generated manifests, pretrained weights, or a trained checkpoint. No training run or benchmark score is claimed. The current development environment did not have PyTorch/Pillow/scikit-image/pytest available, so runtime tests and a training smoke test have not yet been confirmed here.
+The local audit environment is installed under `.venv/` with CUDA-enabled PyTorch.
+Validated Rain14000/Rain12 archives are under `data/raw/`, with manifests under
+`data/manifests/`. Full training and a useful trained restoration checkpoint are
+not yet available. See `docs/TRAINING_READY.md` for the exact local commands and
+`docs/DATASET_STATUS.md` for unavailable all-weather sources. The instructions
+below also describe setup on another machine.
 
 You will need:
 

@@ -1,0 +1,3 @@
+input_path,target_path,weather_type,source_dataset,split,scene_id
+D:\Multi_adverse_weather_image_enhancement\data\raw\extracted\Rain14000\rainy_image_dataset\training\rainy_image\100_1.jpg,D:\Multi_adverse_weather_image_enhancement\data\raw\extracted\Rain14000\rainy_image_dataset\training\ground_truth\100.jpg,rain,Rain14000,train,100
+D:\Multi_adverse_weather_image_enhancement\data\raw\extracted\Rain14000\rainy_image_dataset\training\rainy_image\100_10.jpg,D:\Multi_adverse_weather_image_enhancement\data\raw\extracted\Rain14000\rainy_image_dataset\training\ground_truth\100.jpg,rain,Rain14000,train,100

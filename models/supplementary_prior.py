@@ -7,6 +7,8 @@ import torch.nn.functional as F
 def dwt2(x):
     """Orthonormal Haar transform. Returns coeffs [B,C,4,ceil(H/2),ceil(W/2)] and original size."""
     h, w = x.shape[-2:]
+    # A08: fixed Haar basis and replicate extension are engineering choices.
+    # Eq. (9) defines a general wavelet transform, not this specific family.
     ph, pw = h % 2, w % 2
     if ph or pw:
         x = F.pad(x, (0, pw, 0, ph), mode="replicate")
@@ -30,11 +32,17 @@ def idwt2(coeffs, output_size=None):
 
 
 class SupplementaryPrior(nn.Module):
-    """Stage-wise recurrent frequency feature guidance (Equation 10 form)."""
+    """Wavelet-guided prior approximation; not a literal Fig. 4 SP graph.
+
+    The code filters only detail bands, resizes packed coefficients to feature
+    resolution and fuses current/bands/previous features. Figure 4 instead draws
+    fused-filter branches concatenated before refinement. These chosen tensors
+    and filters are not established as equivalent by Eq. (10). See A02/A03.
+    """
     def __init__(self, channels, previous_channels=None):
         super().__init__()
-        # Eq. (9)-(10): preserve the low-pass approximation coefficients and
-        # apply depthwise filtering only to the three high-frequency bands.
+        # III-A supports preserving low frequencies while filtering details.
+        # The exact 3x3 detail filter and 6C fusion below are chosen internals.
         self.detail_filter = nn.Conv2d(channels*3, channels*3, 3, padding=1,
                                        groups=channels*3)
         self.fuse = nn.Sequential(nn.Conv2d(channels*6, channels, 1),
@@ -55,9 +63,11 @@ class SupplementaryPrior(nn.Module):
 
     def forward(self, encoder_feature, previous_prior=None):
         b, c, h, w = encoder_feature.shape
-        # LL passes unchanged; the following pointwise fusion combines LL with
-        # filtered LH/HL/HH and the preceding supplementary feature.
+        # LL passes unchanged inside filter_wavelet_bands. The following fusion
+        # can still change it; preservation here does not mean an identity prior.
         bands = self.filter_wavelet_bands(encoder_feature).flatten(1,2)
+        # A03: resize coefficients, do not IDWT them. This is not proof of a
+        # spatially equivalent depth-wise wavelet convolution from the paper.
         bands = F.interpolate(bands, size=(h,w), mode="bilinear", align_corners=False)
         prev = torch.zeros_like(encoder_feature) if previous_prior is None else previous_prior
         if prev.shape[-2:] != (h,w):

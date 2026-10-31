@@ -1,0 +1,32 @@
+{
+  "doi": "10.1109/TCSVT.2023.3299324",
+  "status": "AVAILABLE - MAIN-PAPER ARCHITECTURE REVIEW COMPLETE",
+  "local_pdf_found": true,
+  "pdf_saved": true,
+  "checked_on": "2026-10-31",
+  "attempts": [
+    {
+      "url": "https://doi.org/10.1109/TCSVT.2023.3299324",
+      "result": "empty response after redirect; not a PDF"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=10196308",
+      "http_status": 418
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/ielx7/76/10461325/10196308.pdf",
+      "http_status": 418
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/10196308",
+      "result": "publisher browser challenge requires JavaScript"
+    }
+  ],
+  "required_action": "Correct documented graph differences and resolve unpublished implementation settings before claiming exact reproduction.",
+  "local_pdf_path": "D:\\Multi_adverse_weather_image_enhancement\\Frequency-Oriented_Efficient_Transformer_for_All-in-One_Weather-Degraded_Image_Restoration (1).pdf",
+  "pages": 14,
+  "sha256": "41d297b56aedd0eaa6ddbbc6f94274f2c679a3e7913c280963bcf092f02d2300",
+  "acquisition": "User supplied local PDF; not downloaded by audit agent",
+  "review_verdict": "NOT EXACT - CONFIRMED DEVIATIONS",
+  "review_evidence": "docs/architecture/README.md"
+}

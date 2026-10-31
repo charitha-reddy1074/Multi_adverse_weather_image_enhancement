@@ -8,13 +8,7 @@ import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from utils.metrics import image_metrics
 from utils.inference import load_model
-
-
-EXTS={".png",".jpg",".jpeg",".bmp",".tif",".tiff",".webp"}
-def image_map(root):
-    root=Path(root)
-    return {x.relative_to(root).with_suffix("").as_posix():x for x in root.rglob("*")
-            if x.suffix.lower() in EXTS}
+from datasets.pairing import image_map
 
 
 def main():
@@ -23,6 +17,8 @@ def main():
     p.add_argument("--csv",default="results/per_image_metrics.csv")
     p.add_argument("--checkpoint"); p.add_argument("--inference-times")
     a=p.parse_args(); preds=image_map(a.pred); targets=image_map(a.target)
+    if set(preds)!=set(targets):
+        raise SystemExit(f"Incomplete evaluation pairs: predictions={len(preds)}, targets={len(targets)}")
     keys=sorted(set(preds)&set(targets))
     if not keys: raise SystemExit("No paired prediction/target paths; relative paths must match.")
     rows=[]; grouped=defaultdict(list)
@@ -30,7 +26,7 @@ def main():
         x=np.asarray(Image.open(preds[key]).convert("RGB"),dtype=np.float32)/255
         y=np.asarray(Image.open(targets[key]).convert("RGB"),dtype=np.float32)/255
         if x.shape!=y.shape:
-            print(f"skip size mismatch {key}: pred={x.shape} target={y.shape}"); continue
+            raise ValueError(f"Pair size mismatch {key}: pred={x.shape} target={y.shape}")
         psnr,ssim=image_metrics(x,y)
         dataset=Path(key).parts[0] if len(Path(key).parts)>1 else "all"
         rows.append((key,dataset,psnr,ssim)); grouped[dataset].append((psnr,ssim))
@@ -48,7 +44,7 @@ def main():
             from thop import profile
             sample=next(iter(preds.values()))
             im=Image.open(sample).convert("RGB"); h,w=im.height,im.width
-            macs,_=profile(model,inputs=(__import__('torch').rand(1,3,h,w),),verbose=False)
+            macs,_=profile(model,inputs=(__import__('torch').rand(1,3,h,w,device=next(model.parameters()).device),),verbose=False)
             print(f"FLOPs_estimate={2*macs:.0f} at input={h}x{w}")
         except ImportError: print("FLOPs estimate skipped (install thop).")
     if a.inference_times:

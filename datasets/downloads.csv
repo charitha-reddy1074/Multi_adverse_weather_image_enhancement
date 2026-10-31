@@ -1,0 +1,14 @@
+dataset,method,url,filename,owner_source,size_note,license_access
+Rain14000,gdown,https://drive.google.com/file/d/10cu6MA4fQ2Dz16zfzyrQWDDhOWhRdhpq/view,Rain14000.zip,https://xueyangfu.github.io/projects/cvpr2017.html,898292342 bytes observed,Research citation requested; no standalone dataset license verified
+Rain800,gdown,https://drive.google.com/file/d/1_pP8fR-gpHUB0q1kpvZxKALvjLZ-JVM8/view,Rain800.zip,https://github.com/hezhangsprinter/ID-CGAN,Unknown,Owner warns original dataset was deleted; permissions required
+Rain100H,manual,https://1drv.ms/f/s!AqLfQqtZ6GwGgep-hgjLxkov2SSZ3g,Rain100H.zip,https://github.com/csdwren/PReNet,Unknown,Research mirror; preserve release; original train/test background overlap requires filtering
+Rain100L,manual,https://1drv.ms/f/s!AqLfQqtZ6GwGgep-hgjLxkov2SSZ3g,Rain100L.zip,https://github.com/csdwren/PReNet,Unknown,Research mirror; preserve original test split
+Rain1200,gdown,https://drive.google.com/file/d/1cMXWICiblTsRl1zjN8FizF5hXOpVOJz4/view,DID-MDN.zip,https://github.com/hezhangsprinter/DID-MDN,Unknown,Code MIT does not establish dataset license; TestA/TestB mapping needs review
+Rain12,curl,https://yu-li.github.io/paper/li_cvpr16_rain.zip,Rain12.zip,https://yu-li.github.io/,7351249 bytes observed,Author-hosted research archive; no standalone license verified
+Raindrop,gdown,https://drive.google.com/file/d/1e7R76s6vwUJxILOcAsthgDLPSnOrQ49K/view,Raindrop.zip,https://github.com/rui1996/DeRaindrop,Unknown,Public research data; TestA subset of TestB; no standalone license verified
+Snow100K-training,gdown,https://drive.google.com/file/d/1SGS2w2RBhfwAMn9dMQZUnoQcqCcz1baU/view,Snow100K-training.tar.gz,https://sites.google.com/view/yunfuliu/desnownet,7.8 GB reported,Source images from Flickr; cite owner; standalone redistribution terms unverified
+Snow100K-testset,gdown,https://drive.google.com/file/d/15z-A3i3Z2ybdKuyxwYRA8YKxIA8_kTDm/view,Snow100K-testset.tar.gz,https://sites.google.com/view/yunfuliu/desnownet,7.8 GB reported,Contains L/M/S tests; research citation requested
+CSD,gdown,https://drive.google.com/file/d/1smNrDvtPs89e0xk336Rt2-2KZffyX5H-/view,CSD.rar,https://github.com/weitingchen83/ICCV2021-Single-Image-Desnowing-HDCWNet,Unknown,Code MIT does not establish dataset license; Drive quota observed
+RESIDE-ITS,curl,https://bit.ly/3iwHmh0,RESIDE-ITS.zip,https://sites.google.com/view/reside-dehaze-datasets/reside-standard,Unknown,Owner link resolves to Box 404; Baidu alternative requires access
+RESIDE-OTS,curl,https://bit.ly/3k8a0Gf,RESIDE-OTS.zip,https://sites.google.com/view/reside-dehaze-datasets/reside-%CE%B2,Unknown,Owner link resolves to Box 404; Baidu alternative requires access
+RESIDE-HSTS,curl,https://bit.ly/394pcAm,RESIDE-HSTS.zip,https://sites.google.com/view/reside-dehaze-datasets/reside-standard,Unknown,Owner link resolves to Box 404; only synthetic subset has aligned ground truth

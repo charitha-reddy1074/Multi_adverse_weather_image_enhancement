@@ -1,40 +1,32 @@
-# Reproduction status
+﻿# Reproduction status - main-paper architecture re-verification
 
-## Implemented
+**NOT EXACT. Full main-paper comparison is complete, but architectural
+corrections and full research reproduction are not complete.**
 
-- One configurable model with dense patch embedding, hierarchical
-  PoolFormer-style encoder, recurrent Haar supplementary priors, ordered
-  channel/space/wavelet queried decoder, skip reconstruction, and RGB output.
-- Differentiable DCT loss, paired-folder/CSV loader, augmentations, train and
-  validation loop, checkpoint/resume, AMP, gradient accumulation, TensorBoard,
-  symmetric inference padding, PSNR/SSIM, and result CSV generation.
-- Paper-oriented and pilot configurations, architecture assumptions, dataset
-  source catalog, manifest builder, and CPU/GPU-ready tests.
-- Encoder pooling/self-attention, SP, spatial/frequency decoder, task-query,
-  loss, and all six attention-order ablation controls.
+Read `architecture/README.md` for the original extracted Figures 4/5, per-module
+logic, exact tensor-shape comparison, parameter evidence and a prioritized
+correction sequence. `PAPER_COMPLIANCE.md` maps requirements to primary evidence,
+code and behavior tests using explicit status labels.
 
-## Not achieved in this environment
+Confirmed differences include the three-level encoder versus four depicted
+encoder positions; SP stage placement; capped spatial K/V; a different wavelet
+query/IDWT graph and normalization position; unresolved query/tail internals;
+1.15M versus 58.34M parameters; and literal Equation 12 loss reduction.
 
-- No public dataset archives were downloaded or locally present, so no training
-  run, checkpoint, PSNR/SSIM score, visual result, or FLOPs result is claimed.
-- PyTorch, torchvision, Pillow, scikit-image, pytest, and PyYAML are not
-  installed in the active Python environment. Syntax compilation passed;
-  runtime architecture/loss tests and config parsing could not run here.
-- The checked-in paper text extraction supports the Figure 4 top-level mapping.
-  The figure pixels were not visually rendered, so internal details visible
-  only in the drawing remain documented assumptions.
-- Source is maintained in the requested GitHub repository's `main` branch.
-  Dataset archives, manifests, and training outputs are intentionally excluded
-  from Git and must be prepared on the execution machine.
+Comments now explain these differences where the operations execute. No model
+or loss operations changed: semantic AST fingerprints before/after match.
+All 62 existing CPU/CUDA and integration tests pass. Passing tests verify that
+the reconstruction works, not that it equals the published architecture.
 
-## Next executable checks
+The supplied 14-page publisher PDF is now available. Main-paper unknowns remain
+explicit assumptions; unavailable supplementary/original-code details cannot be
+certified. Original checkpoint parity and full trained restoration performance
+have not been established.
 
-Install a compatible PyTorch build from pytorch.org, install `requirements.txt`,
-prepare paired train/validation data and manifests, then run:
+CUDA setup, Rain14000/Rain12 acquisition/integrity reports and training pipeline
+remain as previously documented. Datasets/manifests/sampling were not changed by
+this comparison. A working pipeline can train the current reconstruction; the
+strict-paper goal requires resolving the documented graph differences first.
 
-```bash
-pip install -r requirements.txt
-python -m pytest tests/
-python scripts/build_manifests.py --root datasets/AIR40K/raw --output data/manifests
-python train.py --config configs/pilot.yaml
-```
+No full training run or useful pretrained restoration model is claimed.
+A trained saved checkpoint can support repeated demonstrations without retraining.

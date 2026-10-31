@@ -1,0 +1,19 @@
+
+train.py --config D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\config.yaml --output D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\checkpoints
+CUDA device=NVIDIA RTX 2000 Ada Generation VRAM=16.00 GiB
+train 1/1:   0%|          | 0/2 [00:00<?, ?it/s]train 1/1:   0%|          | 0/2 [00:01<?, ?it/s, loss=0.2828]train 1/1:  50%|#####     | 1/2 [00:01<00:01,  1.46s/it, loss=0.2828]train 1/1:  50%|#####     | 1/2 [00:01<00:01,  1.46s/it, loss=0.2905]train 1/1: 100%|##########| 2/2 [00:01<00:00,  1.37it/s, loss=0.2905]train 1/1: 100%|##########| 2/2 [00:01<00:00,  1.19it/s, loss=0.2905]
+epoch=1 train_loss=0.573347 val_loss=5.473818 PSNR=15.0077 SSIM=0.460810 best_val=5.473818
+
+train.py --config D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\config.yaml --resume D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\checkpoints\latest.pt --output D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\checkpoints
+resuming at epoch 2 from D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\checkpoints\latest.pt
+CUDA device=NVIDIA RTX 2000 Ada Generation VRAM=16.00 GiB
+train 2/2:   0%|          | 0/2 [00:00<?, ?it/s]train 2/2:   0%|          | 0/2 [00:01<?, ?it/s, loss=0.2736]train 2/2:  50%|#####     | 1/2 [00:01<00:01,  1.33s/it, loss=0.2736]train 2/2:  50%|#####     | 1/2 [00:01<00:01,  1.33s/it, loss=0.2763]train 2/2: 100%|##########| 2/2 [00:01<00:00,  1.51it/s, loss=0.2763]train 2/2: 100%|##########| 2/2 [00:01<00:00,  1.31it/s, loss=0.2763]
+epoch=2 train_loss=0.549903 val_loss=5.469968 PSNR=15.0138 SSIM=0.460950 best_val=5.469968
+
+inference.py --input D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\heldout_input --checkpoint D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\checkpoints\latest.pt --output D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\restored
+D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\restored\sample.png
+images=1 params=19,743 mean_inference_seconds=0.321497
+
+evaluate.py --pred D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\restored --target D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\heldout_target --csv D:\Multi_adverse_weather_image_enhancement\outputs\audit_smoke\heldout_metrics.csv
+all: images=1 PSNR=16.7541 dB SSIM=0.263462
+overall: images=1 PSNR=16.7541 dB SSIM=0.263462

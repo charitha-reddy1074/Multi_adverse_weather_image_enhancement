@@ -1,0 +1,64 @@
+{
+  "source_pdf": "Frequency-Oriented_Efficient_Transformer_for_All-in-One_Weather-Degraded_Image_Restoration (1).pdf",
+  "source_sha256": "41d297b56aedd0eaa6ddbbc6f94274f2c679a3e7913c280963bcf092f02d2300",
+  "render_scale": 3,
+  "coordinate_origin": "top-left, PDF points",
+  "crops": {
+    "figure4_airformer.png": {
+      "pdf_page": 3,
+      "bounds": [
+        45,
+        242,
+        567,
+        483
+      ],
+      "description": "Figure 4, printed page 1888",
+      "pixels": [
+        1566,
+        723
+      ]
+    },
+    "figure5_queried_attention.png": {
+      "pdf_page": 5,
+      "bounds": [
+        45,
+        42,
+        567,
+        303
+      ],
+      "description": "Figure 5, printed page 1890",
+      "pixels": [
+        1566,
+        783
+      ]
+    },
+    "table13_efficiency.png": {
+      "pdf_page": 10,
+      "bounds": [
+        313,
+        282,
+        567,
+        403
+      ],
+      "description": "Table XIII, printed page 1895",
+      "pixels": [
+        762,
+        363
+      ]
+    },
+    "equations11_13.png": {
+      "pdf_page": 6,
+      "bounds": [
+        313,
+        268,
+        568,
+        655
+      ],
+      "description": "Equations 11-13, printed page 1891",
+      "pixels": [
+        765,
+        1161
+      ]
+    }
+  }
+}

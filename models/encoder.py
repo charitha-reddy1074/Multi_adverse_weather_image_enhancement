@@ -6,7 +6,12 @@ from torch import nn
 
 
 class FrequencyGuidedBlock(nn.Module):
-    """PoolFormer token mixer plus a depthwise channel MLP."""
+    """Fig. 4-style GN/mixer/residual/GN/MLP/residual, with chosen internals.
+
+    AvgPool(z)-z follows the PoolFormer-inspired interpretation; Fig. 4 only
+    labels 'Pooling'. Group count, MLP ratio, activations and edge padding are
+    explicit reconstruction assumptions, not specified AIRFormer hyperparameters.
+    """
     def __init__(self, channels, mlp_ratio=2.0, pool_size=3,
                  token_mixer="pooling", attention_heads=4,max_spatial_tokens=1024):
         super().__init__()
@@ -28,6 +33,7 @@ class FrequencyGuidedBlock(nn.Module):
         )
 
     def forward(self, x):
+        # Normalize before local token mixing, then add the first residual.
         z = self.norm1(x)
         if self.token_mixer=="pooling":
             pooled = F.avg_pool2d(z, self.pool_size, stride=1,
@@ -42,6 +48,7 @@ class FrequencyGuidedBlock(nn.Module):
             else: kv=query
             mixed=self.attention(query,kv,kv,need_weights=False)[0]
             x=x+mixed.transpose(1,2).reshape(b,c,h,w)
+        # The second pre-normalized branch mixes channels and local neighborhoods.
         return x + self.mlp(self.norm2(x))
 
 
@@ -67,9 +74,14 @@ class HierarchicalEncoder(nn.Module):
             if i:
                 x = self.downsamples[i-1](x)
             x = stage(x)
+            # A02: SP is computed from this stage's *post-block* feature and
+            # added after the block. Fig. 4 instead draws prior addition after
+            # the next patch embedding and before its encoder block. These
+            # graphs are not equivalent; this code is preserved for the audit.
             if supplementary_modules is not None:
                 if i == 0:
-                    # Equation 10 states X^0 = X_sup^0 = 0 at the first SP stage.
+                    # Eq. (10)'s zero initialization is reproduced, but not its
+                    # complete previous-stage routing (see A02 above).
                     zero = torch.zeros_like(x)
                     previous = supplementary_modules[i](zero, zero)
                 else:

@@ -2,26 +2,10 @@ from pathlib import Path
 import random
 import csv
 from collections import Counter
+from datasets.pairing import image_map
 from PIL import Image
-import torch
 from torch.utils.data import Dataset
 import torchvision.transforms.functional as TF
-
-
-EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
-
-
-def image_map(root):
-    root = Path(root)
-    # Preserve relative subdirectories: several AIR40K source datasets reuse
-    # names such as 1.png. A stem-only map silently paired/dropped those files.
-    result={}
-    for p in root.rglob("*"):
-        if p.is_file() and p.suffix.lower() in EXTS:
-            key=p.relative_to(root).with_suffix("").as_posix()
-            if key in result: raise ValueError(f"duplicate relative image identity {key} under {root}")
-            result[key]=p
-    return result
 
 
 class PairedWeatherDataset(Dataset):
@@ -45,6 +29,8 @@ class PairedWeatherDataset(Dataset):
             degraded_root = root / "degraded"
             if not degraded_root.is_dir(): degraded_root = root / "rainy"
             degraded, clean = image_map(degraded_root), image_map(root / "clean")
+            if set(degraded) != set(clean):
+                raise ValueError(f"Unpaired images under {root}: inputs={len(degraded)}, targets={len(clean)}")
             self.records=[(degraded[k],clean[k],"unknown","unknown","unknown",k)
                           for k in sorted(set(degraded)&set(clean))]
         self.keys=[r[2]+"/"+r[3]+"/"+r[5] for r in self.records]
@@ -68,7 +54,6 @@ class PairedWeatherDataset(Dataset):
             # Pad small images before taking a crop so batches always collate.
             if w < self.crop_size or h < self.crop_size:
                 pad_w, pad_h = max(0, self.crop_size-w), max(0, self.crop_size-h)
-                import torchvision.transforms.functional as TF
                 a, b = TF.pad(a, (0, 0, pad_w, pad_h)), TF.pad(b, (0, 0, pad_w, pad_h))
                 w, h = a.size
             left = random.randint(0, w-self.crop_size)
@@ -93,7 +78,6 @@ class PairedWeatherDataset(Dataset):
             if self.crop_size:
                 aw, ah = aa.size
                 if aw < self.crop_size or ah < self.crop_size:
-                    import torchvision.transforms.functional as TF
                     aa, bb = TF.pad(aa, (0, 0, max(0,self.crop_size-aw), max(0,self.crop_size-ah))), TF.pad(bb, (0, 0, max(0,self.crop_size-aw), max(0,self.crop_size-ah)))
                     aw, ah = aa.size
                 left, top = random.randint(0,aw-self.crop_size), random.randint(0,ah-self.crop_size)

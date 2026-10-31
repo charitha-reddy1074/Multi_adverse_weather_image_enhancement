@@ -14,6 +14,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from airformer import AIRFormer, MultiDomainConsistencyLoss
 from airformer.data import PairedWeatherDataset
 from utils.metrics import image_metrics
+from utils.inference import _restore_tensor
+from datasets.pairing import assert_disjoint_datasets
 
 
 def validate(model, loader, loss_fn, device):
@@ -22,7 +24,7 @@ def validate(model, loader, loss_fn, device):
     with torch.no_grad():
         for x, target, _ in loader:
             x, target = x.to(device), target.to(device)
-            pred = model(x)
+            pred, _ = _restore_tensor(model, x, device, 128)
             losses.append(loss_fn(pred, target)[0].item())
             for p, t in zip(pred.clamp(0, 1).cpu().numpy(), target.cpu().numpy()):
                 p, t = np.moveaxis(p, 0, -1), np.moveaxis(t, 0, -1)
@@ -85,11 +87,18 @@ def main():
     workers = int(cfg.get("num_workers", 0))
     train_manifest=Path(cfg.get("train_manifest",""))
     val_manifest=Path(cfg.get("val_manifest",""))
+    for name in ("train_manifest", "val_manifest"):
+        if cfg.get(name) and not Path(cfg[name]).is_file():
+            raise FileNotFoundError(f"Configured {name} not found: {cfg[name]}; build validated manifests first")
     train_ds=PairedWeatherDataset(train_root,cfg["crop_size"],True,
         cfg.get("mixup_prob",.5),manifest=train_manifest if train_manifest.is_file() else None,
         balance_weather=bool(cfg.get("balance_weather",False)))
     val_ds=PairedWeatherDataset(val_root,None,False,
         manifest=val_manifest if val_manifest.is_file() else None)
+    assert_disjoint_datasets(train_ds, val_ds)
+    for dataset, expected in ((train_ds, "train"), (val_ds, "val")):
+        if any(row[4] not in (expected, "unknown", "") for row in dataset.records):
+            raise ValueError(f"Expected {expected} records; official test records cannot be used for model selection")
     sampler=None
     if train_ds.sample_weights is not None:
         sampler=torch.utils.data.WeightedRandomSampler(train_ds.sample_weights,
@@ -125,15 +134,26 @@ def main():
     out = Path(a.output); out.mkdir(parents=True, exist_ok=True)
     logdir=out/"runs"; writer=SummaryWriter(log_dir=str(logdir))
     amp_enabled=device.type=="cuda" and bool(cfg.get("mixed_precision",True))
-    scaler=torch.cuda.amp.GradScaler(enabled=amp_enabled)
+    scaler=torch.amp.GradScaler(device.type, enabled=amp_enabled)
     start_epoch=0; best=float("inf")
     if a.resume:
-        saved=torch.load(a.resume,map_location=device)
+        saved=torch.load(a.resume,map_location="cpu",weights_only=True)
+        if saved.get("model_config", model_cfg) != model_cfg:
+            raise ValueError("Resume model_config differs from current config; use the checkpoint's architecture")
         model.load_state_dict(saved["model"])
         opt.load_state_dict(saved["optimizer"])
         if "scheduler" in saved: sched.load_state_dict(saved["scheduler"])
         if "scaler" in saved: scaler.load_state_dict(saved["scaler"])
         start_epoch=int(saved.get("epoch",0)); best=float(saved.get("best_val",float("inf")))
+        if "rng" in saved:
+            rng=saved["rng"]
+            random.setstate(rng["python"])
+            np.random.set_state((rng["numpy"][0],np.array(rng["numpy"][1],dtype=np.uint32),
+                                 *rng["numpy"][2:]))
+            torch.set_rng_state(rng["torch"])
+            generator.set_state(rng["loader"])
+            if torch.cuda.is_available() and rng["cuda"]:
+                torch.cuda.set_rng_state_all(rng["cuda"])
         print(f"resuming at epoch {start_epoch+1} from {a.resume}")
     accum=max(1,int(cfg.get("gradient_accumulation_steps",1)))
     if device.type=="cuda":
@@ -158,8 +178,13 @@ def main():
             do_step=(step+1)%accum==0 or step+1==len(train)
             if do_step:
                 scaler.unscale_(opt)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0, error_if_nonfinite=True)
+                # FP16 overflow is handled by GradScaler: skip the update and
+                # lower the scale. FP32 nonfinite gradients remain fatal.
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0, error_if_nonfinite=not amp_enabled)
+                previous_scale=scaler.get_scale()
                 scaler.step(opt); scaler.update(); opt.zero_grad(set_to_none=True)
+                if scaler.get_scale()<previous_scale:
+                    print(f"AMP overflow: skipped optimizer update; scale={scaler.get_scale()}")
             running.append(raw_loss.item())
             bar.set_postfix(loss=f"{loss.item():.4f}")
         sched.step()
@@ -176,6 +201,11 @@ def main():
                  "optimizer": opt.state_dict(), "scheduler": sched.state_dict(),
                  "scaler":scaler.state_dict(),"val": metrics,"best_val":best,
                  "model_config": model_cfg, "config": cfg}
+        np_state=np.random.get_state()
+        state["rng"]={"python":random.getstate(),
+            "numpy":(np_state[0],np_state[1].tolist(),*np_state[2:]),
+            "torch":torch.get_rng_state(),"loader":generator.get_state(),
+            "cuda":torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []}
         torch.save(state, out / "latest.pt")
         if is_best: torch.save(state, out / "best.pt")
         writer.add_scalar("loss/best_validation",best,epoch+1)

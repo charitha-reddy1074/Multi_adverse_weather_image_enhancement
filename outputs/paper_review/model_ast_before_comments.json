@@ -1,0 +1,11 @@
+{
+  "models\\airformer.py": "8776623ff119dea73bac2a4909eda1c22894ef5981bfc93c68f4599cbeec8b3b",
+  "models\\attention.py": "5edef7f70b507d228c1494585d6761beabc3fd5bdab84b53beb743590f5866ae",
+  "models\\decoder.py": "f5bcd06a8722fc28adf92a59e72c10d9c87dca638f70c54bd19bffdab5597ae4",
+  "models\\encoder.py": "6f5ae145cdc4d3331bc2e6eea9c22314c538e82cfaf31642158e372a6d627840",
+  "models\\patch_embed.py": "a3c40f458661d8ac518e891d9425e4394628c4f9b79c31514fe7b4b81cf8e82d",
+  "models\\supplementary_prior.py": "ce580a73b4a290ef93892ed1bad8b81a9d7443ddd36dd5cd2afd5a7864aef194",
+  "models\\__init__.py": "1d98ea7e28ee663fd5c91b7b2631eeaffa4046f214c03243d2bc25b3b67007c2",
+  "losses\\multidomain.py": "260da200457a9d45d8c48cba0cb7253d24bce0d60c96441f2773994eb8f83951",
+  "losses\\__init__.py": "0a42fafa4c07536d2d3e381a6bb43554ff129b569f69ca693c83e4ab326f1727"
+}

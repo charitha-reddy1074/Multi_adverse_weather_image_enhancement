@@ -3,7 +3,8 @@ import argparse
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from datasets.pairing import verify_manifest, write_manifest, image_map
+from datasets.pairing import verify_manifest, write_manifest, image_map, validate_pair, assert_disjoint_datasets
+from types import SimpleNamespace
 
 WEATHER={"rain14000":"rain","rain800":"rain","rain100h":"rain",
 "rain100l":"rain","rain1200":"rain","rain12":"rain","raindrop":"raindrop",
@@ -32,14 +33,14 @@ def main():
     p.add_argument("--output",default="data/manifests")
     p.add_argument("--splits",nargs="+",default=["train","val","test"])
     a=p.parse_args(); root=Path(a.root).resolve(); out=Path(a.output)
-    scene_splits={}
+    scene_splits={}; all_records={}; errors=[]
     for split in a.splits:
         records=[]
         for source_dir in sorted((root/split).glob("*")):
             src=source_dir.name
             ins=source_dir/"degraded"; targets=source_dir/"clean"
             if not ins.is_dir() or not targets.is_dir():
-                print(f"skip {source_dir}: expected degraded/ and clean/ directories")
+                errors.append(f"{source_dir}: expected degraded/ and clean/ directories")
                 continue
             imap,tmap=image_map(ins),image_map(targets)
             for rel in sorted(set(imap)&set(tmap)):
@@ -51,14 +52,27 @@ def main():
                     "source_dataset":src,"split":split,
                     "scene_id":scene})
             for rel in sorted(set(imap)^set(tmap)):
-                print(f"unpaired {split}/{src}/{rel}")
+                errors.append(f"unpaired {split}/{src}/{rel}")
+        all_records[split]=records
+        for row in records:
+            valid, sa, sb=validate_pair(row['input_path'],row['target_path'])
+            if not valid: errors.append(f"Invalid pair {row['input_path']}: {sa} vs {sb}")
+            if row['weather_type']=='unknown': errors.append(f"Unknown source: {row['source_dataset']}")
+    if not any(all_records.values()): errors.append(f"No image pairs under {root}")
+    try:
+        assert_disjoint_datasets(*(SimpleNamespace(records=[tuple(r[k] for k in
+            ('input_path','target_path','weather_type','source_dataset','split','scene_id')) for r in rows])
+            for rows in all_records.values()))
+    except (ValueError,OSError) as error: errors.append(str(error))
+    if errors: raise SystemExit('\n'.join(errors))
+    for split,records in all_records.items():
         dest=out/f"{split}.csv"; write_manifest(records,dest)
         count,issues=verify_manifest(dest)
         print(f"{split}: {count} pairs -> {dest}; issues={len(issues)}")
         for issue in issues: print("ERROR",issue)
         by_source={}
         for row in records:
-            name=row["source_dataset"].lower().replace("-"," ")
+            name=row["source_dataset"].lower()
             by_source[name]=by_source.get(name,0)+1
         if split in {"train","test"}:
             for source,counts in EXPECTED.items():

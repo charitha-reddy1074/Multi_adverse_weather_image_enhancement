@@ -69,7 +69,7 @@ def restore_image(model,image,device=None,pad_multiple=128,tile_size=0,overlap=3
 def load_model(checkpoint,device="auto",base_channels=None):
     if device=="auto": device="cuda" if torch.cuda.is_available() else "cpu"
     device=torch.device(device)
-    state=torch.load(checkpoint,map_location=device)
+    state=torch.load(checkpoint,map_location="cpu",weights_only=True)
     from models.airformer import AIRFormer
     cfg=dict(state.get("model_config",{}))
     cfg.setdefault("base_channels",base_channels or state.get("base_channels",32))

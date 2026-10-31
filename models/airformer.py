@@ -1,4 +1,8 @@
-"""All-weather AIRFormer reconstruction with dense input/output grids."""
+"""Independent AIRFormer-inspired reconstruction, not an exact paper model.
+
+See docs/architecture/README.md: Figure 4 draws four encoder block positions;
+this implementation fixes three, with an assumed skip-connected decoder tail.
+"""
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -22,6 +26,9 @@ class AIRFormer(nn.Module):
         super().__init__()
         if len(stage_blocks) != 3 or any(int(d) < 1 for d in stage_blocks):
             raise ValueError("stage_blocks must contain three positive depths")
+        # A01: three chosen levels, not the four encoder block positions in Fig. 4.
+        # The figure labels x1..x3 before the decoder and x4 AFTER the decoder.
+        # Widths/depths are reconstruction defaults; do not infer paper parity.
         channels=(base_channels,base_channels*2,base_channels*4)
         self.patch_embed=PatchEmbed(3,channels[0],patch_size,patch_stride,patch_padding)
         self.encoder=HierarchicalEncoder(channels,stage_blocks,encoder_token_mixer,
@@ -36,6 +43,8 @@ class AIRFormer(nn.Module):
         self.decoder=HierarchicalDecoder(channels,attention_order,attention_heads,
                                          max_spatial_tokens,query_combine,use_task_queries,
                                          decoder_mode)
+        # A07: a single RGB projection after two skip-fusion stages. The paper
+        # labels a hierarchical reconstruction tail but does not specify this one.
         self.reconstruct=nn.Conv2d(channels[0],3,3,padding=1)
         self.residual_image=residual_image
         self.gradient_checkpointing=gradient_checkpointing
@@ -51,6 +60,9 @@ class AIRFormer(nn.Module):
         return x,(h,w)
 
     def forward(self, degraded_image):
+        # Dense RGB -> conv embedding -> 3 encoder/SP stages -> 2 decoder stages.
+        # Padding here serves this chosen hierarchy; utils/inference.py applies
+        # the separately documented multiple-of-128 evaluation policy.
         image,size=self._pad(degraded_image)
         x=image
         x=self.patch_embed(x)
@@ -62,6 +74,7 @@ class AIRFormer(nn.Module):
         decoded=F.interpolate(decoded,size=image.shape[-2:],mode="bilinear",align_corners=False)
         restored=self.reconstruct(decoded)
         if self.residual_image:
+            # A07: global image residual is an adaptation, not confirmed by Fig. 4.
             restored=restored+image[:,:3]
         h,w=size
         return restored[...,:h,:w].clamp(0,1)
