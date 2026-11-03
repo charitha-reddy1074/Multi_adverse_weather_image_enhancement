@@ -1,7 +1,6 @@
 """Independent AIRFormer-inspired reconstruction, not an exact paper model.
 
-See docs/architecture/README.md: Figure 4 draws four encoder block positions;
-this implementation fixes three, with an assumed skip-connected decoder tail.
+See docs/architecture/README.md for confirmed graph corrections and assumptions.
 """
 import torch
 import torch.nn.functional as F
@@ -14,7 +13,7 @@ from .decoder import HierarchicalDecoder
 
 
 class AIRFormer(nn.Module):
-    def __init__(self, base_channels=32, stage_blocks=(2,2,2),
+    def __init__(self, base_channels=32, stage_blocks=(2,2,2,2),
                  patch_size=3, patch_stride=1, patch_padding=1,
                  attention_heads=4, max_spatial_tokens=1024,
                  attention_order=("channel","space","wavelet"),
@@ -22,28 +21,25 @@ class AIRFormer(nn.Module):
                  encoder_token_mixer="pooling",decoder_mode=None,
                  use_supplementary_prior=True, use_task_queries=True,
                  use_frequency_decoder=None, residual_image=True,
-                 gradient_checkpointing=False):
+                 gradient_checkpointing=False, spatial_kv_pooling=False):
         super().__init__()
-        if len(stage_blocks) != 3 or any(int(d) < 1 for d in stage_blocks):
-            raise ValueError("stage_blocks must contain three positive depths")
-        # A01: three chosen levels, not the four encoder block positions in Fig. 4.
-        # The figure labels x1..x3 before the decoder and x4 AFTER the decoder.
-        # Widths/depths are reconstruction defaults; do not infer paper parity.
-        channels=(base_channels,base_channels*2,base_channels*4)
+        if len(stage_blocks) != 4 or any(int(d) != d or d < 1 for d in stage_blocks):
+            raise ValueError("stage_blocks must contain four positive integer depths")
+        channels=tuple(base_channels*2**i for i in range(4))
         self.patch_embed=PatchEmbed(3,channels[0],patch_size,patch_stride,patch_padding)
         self.encoder=HierarchicalEncoder(channels,stage_blocks,encoder_token_mixer,
                                          attention_heads,max_spatial_tokens)
         self.use_supplementary_prior=use_supplementary_prior
         if use_supplementary_prior:
             self.supplementary_priors=nn.ModuleList([
-                SupplementaryPrior(c, channels[i-1] if i else c)
-                for i,c in enumerate(channels)])
+                SupplementaryPrior(c, c, output_channels=channels[i+1])
+                for i,c in enumerate(channels[:-1])])
         if decoder_mode is None:
             decoder_mode="frequency" if use_frequency_decoder is not False else "none"
         self.decoder=HierarchicalDecoder(channels,attention_order,attention_heads,
                                          max_spatial_tokens,query_combine,use_task_queries,
-                                         decoder_mode)
-        # A07: a single RGB projection after two skip-fusion stages. The paper
+                                         decoder_mode, spatial_kv_pooling)
+        # A07: a single RGB projection after assumed skip-fusion stages. The paper
         # labels a hierarchical reconstruction tail but does not specify this one.
         self.reconstruct=nn.Conv2d(channels[0],3,3,padding=1)
         self.residual_image=residual_image
@@ -52,15 +48,14 @@ class AIRFormer(nn.Module):
     @staticmethod
     def _pad(x):
         h,w=x.shape[-2:]
-        # Three hierarchical levels need divisibility by four.
-        ph,pw=(-h)%4,(-w)%4
+        ph,pw=(-h)%8,(-w)%8
         if ph or pw:
             mode="reflect" if h>ph and w>pw and h>1 and w>1 else "replicate"
             x=F.pad(x,(0,pw,0,ph),mode=mode)
         return x,(h,w)
 
     def forward(self, degraded_image):
-        # Dense RGB -> conv embedding -> 3 encoder/SP stages -> 2 decoder stages.
+        # Four encoder positions, three recurrent priors injected pre-block.
         # Padding here serves this chosen hierarchy; utils/inference.py applies
         # the separately documented multiple-of-128 evaluation policy.
         image,size=self._pad(degraded_image)

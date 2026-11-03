@@ -1,0 +1,168 @@
+{
+  "timestamp": "2026-11-02T09:35:45.298194+00:00",
+  "purpose": "Fresh real-data diagnostic optimization, not research training or benchmark",
+  "device": "NVIDIA RTX 2000 Ada Generation",
+  "vram_gib": 15.99560546875,
+  "architecture": "paper-guided config; four encoder positions; strict spatial attention",
+  "parameters": 2762691,
+  "seed": 42,
+  "initialization": "fresh random, no checkpoint loaded",
+  "optimizer": "AdamW lr=2e-4 betas=.9/.999 wd=1e-4",
+  "steps": [
+    {
+      "weather": "rain",
+      "input": "data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\100_1.jpg",
+      "crop": 64,
+      "loss": 1.201961874961853,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "rain",
+      "input": "data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\100_10.jpg",
+      "crop": 64,
+      "loss": 1.4297699928283691,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "rain",
+      "input": "data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\100_11.jpg",
+      "crop": 64,
+      "loss": 1.4168004989624023,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "rain",
+      "input": "data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\100_12.jpg",
+      "crop": 64,
+      "loss": 0.9894081354141235,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "raindrop",
+      "input": "data\\raw\\extracted\\Raindrop\\train\\data\\0_rain.png",
+      "crop": 64,
+      "loss": 1.3289929628372192,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "raindrop",
+      "input": "data\\raw\\extracted\\Raindrop\\train\\data\\100_rain.png",
+      "crop": 64,
+      "loss": 1.2834938764572144,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "raindrop",
+      "input": "data\\raw\\extracted\\Raindrop\\train\\data\\101_rain.png",
+      "crop": 64,
+      "loss": 0.19304141402244568,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "raindrop",
+      "input": "data\\raw\\extracted\\Raindrop\\train\\data\\102_rain.png",
+      "crop": 64,
+      "loss": 1.277215600013733,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "snow",
+      "input": "data\\raw\\extracted\\Snow100K-training\\all\\synthetic\\beautiful_smile_00001.jpg",
+      "crop": 64,
+      "loss": 0.9904271364212036,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "snow",
+      "input": "data\\raw\\extracted\\Snow100K-training\\all\\synthetic\\beautiful_smile_00006.jpg",
+      "crop": 64,
+      "loss": 1.004925012588501,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "snow",
+      "input": "data\\raw\\extracted\\Snow100K-training\\all\\synthetic\\beautiful_smile_00008.jpg",
+      "crop": 64,
+      "loss": 0.6418715715408325,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    },
+    {
+      "weather": "snow",
+      "input": "data\\raw\\extracted\\Snow100K-training\\all\\synthetic\\beautiful_smile_00011.jpg",
+      "crop": 64,
+      "loss": 0.5593266487121582,
+      "finite_gradients": true,
+      "optimizer_updated": true
+    }
+  ],
+  "status": "PASS - DIAGNOSTIC ONLY",
+  "patch256_initial_attempt": {
+    "status": "CUDA OUT OF MEMORY"
+  },
+  "patch256": {
+    "status": "PASS",
+    "initialization": "fresh random; no checkpoint",
+    "batch_size": 1,
+    "patch": 256,
+    "attention": "exact query-chunked SDPA; all keys retained; checkpointed backward",
+    "seconds": 99.77431489998708,
+    "peak_allocated_gib": 0.9465746879577637,
+    "loss": 5.277210235595703,
+    "optimizer_updated": true,
+    "timestamp": "2026-11-02T09:40:28.275849+00:00"
+  },
+  "four_weather_recheck": {
+    "timestamp": "2026-11-02T10:14:21.271802+00:00",
+    "initialization": "fresh random; no checkpoint",
+    "device": "cuda",
+    "crop": 64,
+    "spatial_kv_pooling": false,
+    "parameters": 2762691,
+    "steps": [
+      {
+        "weather": "rain",
+        "loss": 1.6054227352142334,
+        "query_gradient_min_l1": 0.00028960994677618146,
+        "finite_gradients": true,
+        "optimizer_updated": true,
+        "seconds": 1.0821711999888066
+      },
+      {
+        "weather": "raindrop",
+        "loss": 1.1383614540100098,
+        "query_gradient_min_l1": 0.000300950079690665,
+        "finite_gradients": true,
+        "optimizer_updated": true,
+        "seconds": 0.40733479999471456
+      },
+      {
+        "weather": "snow",
+        "loss": 0.6687391996383667,
+        "query_gradient_min_l1": 0.00013168952136766165,
+        "finite_gradients": true,
+        "optimizer_updated": true,
+        "seconds": 0.40801610000198707
+      },
+      {
+        "weather": "haze",
+        "loss": 1.166357159614563,
+        "query_gradient_min_l1": 0.00030114786932244897,
+        "finite_gradients": true,
+        "optimizer_updated": true,
+        "seconds": 0.41220230000908487
+      }
+    ],
+    "status": "PASS - FOUR-WEATHER DIAGNOSTIC ONLY"
+  }
+}

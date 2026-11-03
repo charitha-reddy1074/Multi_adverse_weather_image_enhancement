@@ -12,7 +12,8 @@ class FrequencyRefinementBlock(nn.Module):
     # Correct ordering does not verify each attention block's internal graph.
     ORDER = ("channel", "space", "wavelet")
     def __init__(self, channels, order=ORDER, heads=4, max_spatial_tokens=1024,
-                 query_combine="add", use_task_queries=True,mode="frequency"):
+                 query_combine="add", use_task_queries=True,mode="frequency",
+                 spatial_kv_pooling=False):
         super().__init__()
         modules = {
             "channel": ChannelQueriedSelfAttention,
@@ -27,7 +28,8 @@ class FrequencyRefinementBlock(nn.Module):
         self.order = tuple(order) if mode=="frequency" else (("space",) if mode=="spatial" else ())
         self.blocks = nn.ModuleList([
             modules[name](channels, heads=heads, max_spatial_tokens=max_spatial_tokens,
-                          query_combine=query_combine,use_task_query=use_task_queries)
+                          query_combine=query_combine,use_task_query=use_task_queries,
+                          spatial_kv_pooling=spatial_kv_pooling)
             for name in self.order
         ])
 
@@ -42,17 +44,17 @@ class DecoderStage(nn.Module):
     """Assumed bilinear-upsample/concat/project/conv/attention reconstruction.
 
     A07: Fig. 4 names a decoder and hierarchical tail but does not establish this
-    two-stage U-shaped implementation or an attention stack at every skip level.
+    chosen U-shaped implementation or an attention stack at every skip level.
     """
     def __init__(self, in_channels, skip_channels, out_channels, attention_order,
                  heads, max_spatial_tokens, query_combine,use_task_queries,
-                 decoder_mode):
+                 decoder_mode, spatial_kv_pooling=False):
         super().__init__()
         self.project = nn.Conv2d(in_channels+skip_channels, out_channels, 1)
         self.refine = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, 3, padding=1), nn.GELU(),
             FrequencyRefinementBlock(out_channels, attention_order, heads, max_spatial_tokens,
-                                     query_combine,use_task_queries,decoder_mode))
+                                     query_combine,use_task_queries,decoder_mode,spatial_kv_pooling))
 
     def forward(self, x, skip):
         # Align this decoder feature to the encoder skip; targets are not resized.
@@ -61,15 +63,15 @@ class DecoderStage(nn.Module):
 
 
 class HierarchicalDecoder(nn.Module):
-    def __init__(self, channels=(32,64,128), attention_order=FrequencyRefinementBlock.ORDER,
+    def __init__(self, channels=(32,64,128,256), attention_order=FrequencyRefinementBlock.ORDER,
                  heads=4, max_spatial_tokens=1024, query_combine="add",
-                 use_task_queries=True,decoder_mode="frequency"):
+                 use_task_queries=True,decoder_mode="frequency",spatial_kv_pooling=False):
         super().__init__()
         stages=[]
         for i in range(len(channels)-2,-1,-1):
             stages.append(DecoderStage(channels[i+1],channels[i],channels[i],
                                        attention_order,heads,max_spatial_tokens,query_combine,
-                                       use_task_queries,decoder_mode))
+                                       use_task_queries,decoder_mode,spatial_kv_pooling))
         self.stages=nn.ModuleList(stages)
 
     def forward(self, features):

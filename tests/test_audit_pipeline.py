@@ -18,7 +18,7 @@ from utils.metrics import image_metrics
 
 
 def small_model(**kwargs):
-    return AIRFormer(base_channels=4, stage_blocks=(1, 1, 1),
+    return AIRFormer(base_channels=4, stage_blocks=(1, 1, 1, 1),
                      attention_heads=1, max_spatial_tokens=16, **kwargs)
 
 
@@ -83,6 +83,42 @@ def test_archive_safe_resume_and_no_overwrite(tmp_path):
     (tmp_path / "out/nested/data.txt").write_text("other")
     with pytest.raises(ValueError, match="differs"):
         safe_extract(archive, tmp_path / "out")
+
+
+@pytest.mark.parametrize("failure", ["missing", "corrupt"])
+def test_preparation_does_not_publish_stale_pairs_after_archive_failure(tmp_path, monkeypatch, failure):
+    import json
+    from scripts import prepare_local_archives
+
+    monkeypatch.chdir(tmp_path)
+    raw = tmp_path / 'data/raw'
+    raw.mkdir(parents=True)
+    for name in ('Rain14000.zip', 'Rain12.zip', 'train.zip',
+                 'Snow100K-training.tar.gz', 'clear.zip', 'haze.zip',
+                 'trans.zip', 'ITS_clear.zip'):
+        if name != 'haze.zip' or failure != 'missing':
+            (raw / name).write_bytes(b'archive fixture')
+    # A failed extraction may leave an older, apparently usable directory.
+    stale = raw / 'extracted/haze-candidates/haze'
+    stale.mkdir(parents=True)
+    Image.new('RGB', (8, 8)).save(stale / '1_1.png')
+    output = tmp_path / 'data/manifests/available'
+    output.mkdir(parents=True)
+    manifest = output / 'train.csv'
+    manifest.write_text('previous validated manifest')
+
+    def extract(archive, destination):
+        if archive.name == 'haze.zip':
+            raise ValueError('checksum/extraction failure')
+
+    monkeypatch.setattr(prepare_local_archives, 'safe_extract', extract)
+    with pytest.raises(RuntimeError, match='Required archives not verified'):
+        prepare_local_archives.main()
+    assert manifest.read_text() == 'previous validated manifest'
+    report = json.loads((output / 'integrity.json').read_text())
+    assert report['unavailable_archives'] == ['haze.zip']
+    assert report['manifests_updated'] is False
+    assert not (output / 'test.csv').exists()
 
 
 @pytest.mark.parametrize("mode", ["channel", "spatial", "wavelet"])
@@ -154,7 +190,7 @@ def test_real_checkpoint_loader_and_inference_dimensions(tmp_path):
     model = small_model()
     path = tmp_path / "state.pt"
     torch.save({"model": model.state_dict(), "model_config": dict(base_channels=4,
-        stage_blocks=(1, 1, 1), attention_heads=1, max_spatial_tokens=16)}, path)
+        stage_blocks=(1, 1, 1, 1), attention_heads=1, max_spatial_tokens=16)}, path)
     loaded, device = load_model(path, "cpu")
     image = Image.new("RGB", (19, 17), (100, 80, 90))
     output, seconds = restore_image(loaded, image, device)
@@ -182,17 +218,20 @@ def test_duplicate_extension_identity_rejected(tmp_path):
 
 
 @pytest.mark.parametrize("mode,expected", [("channel", (1, 2, 4, 4)),
-    ("spatial", (1, 2, 63, 16)), ("wavelet", (1, 2, 20, 16))])
+    ("spatial", (1, 2, 63, 63)), ("wavelet", (1, 2, 63, 20))])
 def test_attention_axes_softmax_normalization_and_kv_shapes(monkeypatch, mode, expected):
-    original = torch.softmax
+    import torch.nn.functional as functional
+    original = functional.scaled_dot_product_attention
     seen = []
 
-    def capture(tensor, dim, *args, **kwargs):
-        result = original(tensor, dim, *args, **kwargs)
-        seen.append((tuple(tensor.shape), dim, result.detach()))
+    def capture(q, k, v, **kwargs):
+        probabilities = torch.softmax((q @ k.transpose(-1, -2))*kwargs['scale'], dim=-1)
+        result = original(q, k, v, **kwargs)
+        torch.testing.assert_close(result, probabilities @ v, atol=1e-6, rtol=1e-5)
+        seen.append((tuple(probabilities.shape), -1, probabilities.detach()))
         return result
 
-    monkeypatch.setattr(torch, "softmax", capture)
+    monkeypatch.setattr(functional, "scaled_dot_product_attention", capture)
     module = QueriedAttention(8, mode, heads=2, max_spatial_tokens=16)
     module(torch.randn(1, 8, 7, 9))
     shape, dim, probabilities = seen[0]

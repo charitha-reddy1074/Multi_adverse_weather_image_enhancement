@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-11-03T07:17:25.650773+00:00",
+  "repository": "dronefreak/RESIDE-ITS",
+  "revision": "39300fc7deb9138a59d5489f91a2f86d14d62eb6",
+  "remote_directories": [
+    "val/clear",
+    "val/haze"
+  ],
+  "local_root": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\haze-candidates",
+  "checked_files": 11000,
+  "checked_bytes": 2912299525,
+  "mismatches": [],
+  "status": "MATCH",
+  "meaning": "All local PNG files match mirror LFS SHA-256 and size; original release attribution remains the mirror publisher's claim.",
+  "split_policy": "Custom scene-disjoint 80/20 split of mirror val content; not official ITS training or SOTS testing."
+}

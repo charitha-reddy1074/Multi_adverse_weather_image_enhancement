@@ -1,3 +1,8 @@
+> Updated 2026-11-02: historical observations below predate the graph corrections.
+> See [current architecture](architecture/README.md), [local dataset audit](LOCAL_DATASET_AUDIT.json)
+> and timestamped [activity log](../LOG.md) for the current state. Old three-stage
+> checkpoints cannot resume the corrected model.
+
 ﻿# AIRFormer paper compliance - completed main-paper re-verification
 
 **Verdict: NOT EXACT. Confirmed architecture deviations remain.**

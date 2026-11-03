@@ -31,7 +31,7 @@ def main():
         p.error("CUDA was selected but is unavailable")
     cfg=yaml.safe_load(Path(a.config).read_text(encoding="utf8"))
     model_cfg={"base_channels":int(cfg.get("base_channels",32)),
-        "stage_blocks":tuple(cfg.get("stage_blocks",(2,2,2))),
+        "stage_blocks":tuple(cfg.get("stage_blocks",(2,2,2,2))),
         "attention_heads":int(cfg.get("attention_heads",4)),
         "max_spatial_tokens":int(cfg.get("max_spatial_tokens",1024)),
         "attention_order":tuple(cfg.get("attention_order",("channel","space","wavelet"))),
@@ -41,6 +41,7 @@ def main():
         "use_supplementary_prior":bool(cfg.get("use_supplementary_prior",True)),
         "use_task_queries":bool(cfg.get("use_task_queries",True)),
         "residual_image":bool(cfg.get("residual_image",True))}
+    model_cfg["spatial_kv_pooling"]=bool(cfg.get("spatial_kv_pooling",False))
     model=AIRFormer(**model_cfg).to(device)
     if a.checkpoint:
         state=torch.load(a.checkpoint,map_location="cpu",weights_only=True)

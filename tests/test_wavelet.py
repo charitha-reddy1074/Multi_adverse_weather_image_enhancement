@@ -37,13 +37,17 @@ def test_supplementary_prior_preserves_approximation_band():
 
 def test_encoder_starts_first_supplementary_prior_from_zeros():
     class Recorder(nn.Module):
-        def __init__(self): super().__init__(); self.inputs=None
+        def __init__(self, channels):
+            super().__init__(); self.inputs=None; self.channels=channels
         def forward(self,x,previous):
             self.inputs=(x.detach().clone(),previous.detach().clone())
-            return torch.zeros_like(x)
-    enc=HierarchicalEncoder((4,8,16),(1,1,1))
-    priors=nn.ModuleList([Recorder(),Recorder(),Recorder()])
+            return torch.zeros(x.shape[0], self.channels, (x.shape[-2]+1)//2,
+                               (x.shape[-1]+1)//2, device=x.device)
+    enc=HierarchicalEncoder((4,8,16,32),(1,1,1,1))
+    priors=nn.ModuleList([Recorder(8),Recorder(16),Recorder(32)])
     features,_=enc(torch.randn(1,4,16,16),priors)
-    assert len(features)==3
+    assert len(features)==4
     assert torch.count_nonzero(priors[0].inputs[0])==0
     assert torch.count_nonzero(priors[0].inputs[1])==0
+    torch.testing.assert_close(priors[1].inputs[0], features[1])
+    torch.testing.assert_close(priors[2].inputs[0], features[2])

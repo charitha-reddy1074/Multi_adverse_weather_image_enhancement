@@ -1,22 +1,23 @@
 # AIRFormer-inspired weather restoration reconstruction
 
-**Architecture re-verification: NOT EXACT.** The main-paper comparison is complete
-and found confirmed graph differences. Read the illustrated
-[architecture comparison README](docs/architecture/README.md) before describing
-this as a paper implementation. Three encoder levels, SP placement, pooled
-spatial K/V, the wavelet attention/IDWT graph, assumed query/tail details, and
-literal Equation 12 reduction prevent an exact reproduction claim. The paper
-configuration has 1,146,883 parameters versus the paper's reported 58.34 million.
+For the prepared four-weather experiment, follow the step-by-step
+[training execution README](TRAINING_README.md). It covers source verification,
+starting training, monitoring, resuming, and reading the final test results.
 
-The model's tensor logic is unchanged by this documentation/comment review.
-CUDA setup, 62 tests, real-pair training/resume/inference/evaluation smoke checks
-pass. Rain14000 and Rain12 are downloaded and validated; other required datasets
-are blocked/partial. Figures 4/5, Equations 9-13 and Tables XII/XIII were inspected
-in the supplied 14-page PDF. Original code/supplementary implementation details
-remain unavailable locally; the main-paper review cannot certify those settings.
-Start with [local training instructions](docs/TRAINING_READY.md),
-[audit findings](docs/AUDIT_REPORT.md), [paper compliance](docs/PAPER_COMPLIANCE.md),
-and [actual dataset status](docs/DATASET_STATUS.md).
+**Current status: paper-guided implementation with explicit assumptions.**
+Four encoder positions, pre-block recurrent prior routing, full spatial attention
+and the Figure 5(c) full-resolution-query/IDWT/concatenation graph are corrected.
+The paper-guided configuration now has **2,762,691 parameters**, versus 58.34M
+reported in the paper. Query composition, numerical widths/depths, SP internals,
+reconstruction and loss-reduction intent still require the supplement or authors.
+See the [current architecture review](docs/architecture/README.md).
+
+The corrected model passes 70 tests, including CPU/CUDA training and resume.
+All eight local archives are extracted and audited; 58,766 train / 14,695 test
+pairs use the requested custom 80/20 split with no validation set;
+[current dataset status](docs/DATASET_STATUS.md) distinguishes usable training
+pairs, unpaired files and missing releases. Full research training is not complete.
+Historical audit documents and checkpoints describe the earlier architecture.
 
 After training once, load the saved checkpoint for testing/demonstrations;
 **retraining is not required each time**. The tiny audit checkpoint is diagnostic
@@ -27,7 +28,7 @@ This repository contains an independent PyTorch reconstruction inspired by **AIR
 ## What is implemented
 
 - One RGB restoration model for rain streaks, adherent raindrops, snow, and haze.
-- Convolutional patch embedding, a three-level PoolFormer-style encoder, Haar-wavelet prior approximations, and a chosen U-shaped reconstruction tail.
+- Convolutional patch embedding, a four-position PoolFormer-style encoder, Haar-wavelet prior approximations, and a chosen U-shaped reconstruction tail.
 - Decoder refinement in the paper's preferred **Channel → Space → Wavelet** order, with learned task-biased query parameters.
 - Smooth L1 plus weighted DCT frequency loss, paired-image loading, matched crops/augmentations, training/validation, checkpoint resume, inference, PSNR/SSIM evaluation, and result visualization.
 - Paper-oriented and memory-oriented YAML configurations, dataset provenance catalog, manifest construction/verification, and component ablation controls.
@@ -37,18 +38,22 @@ Read the [architecture assumptions](docs/architecture_assumptions.md), [dataset 
 ## Readiness and items you must supply
 
 The local audit environment is installed under `.venv/` with CUDA-enabled PyTorch.
-Validated Rain14000/Rain12 archives are under `data/raw/`, with manifests under
-`data/manifests/`. Full training and a useful trained restoration checkpoint are
+All local archives are extracted under `data/raw/extracted/`. The requested
+80/20 training/testing manifests are under `data/manifests/available/`. Full training and a useful trained restoration checkpoint are
 not yet available. See `docs/TRAINING_READY.md` for the exact local commands and
 `docs/DATASET_STATUS.md` for unavailable all-weather sources. The instructions
 below also describe setup on another machine.
+
+```powershell
+./.venv/Scripts/python train.py --config configs/local_available.yaml --output checkpoints/local80_20
+```
 
 You will need:
 
 1. Python 3.10 or 3.11 recommended.
 2. A PyTorch build compatible with your OS and CPU/CUDA setup. Install it using the official [PyTorch installation selector](https://pytorch.org/get-started/locally/) before the remaining requirements.
 3. The paired datasets you are permitted to use. See [`datasets/sources.csv`](datasets/sources.csv) and [`datasets/README.md`](datasets/README.md). Dataset source pages are not all direct download links; follow each owner's access and license terms.
-4. A disjoint validation split drawn from training scenes. Do not use test images for validation or training.
+4. Use the prepared scene-disjoint 80/20 training/test split. The local config has no validation set; test data do not select checkpoints.
 
 ## Installation
 

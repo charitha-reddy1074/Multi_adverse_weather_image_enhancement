@@ -28,7 +28,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     cfg = yaml.safe_load((root / "configs/pilot.yaml").read_text())
     model_cfg = dict(base_channels=cfg["base_channels"], stage_blocks=cfg["stage_blocks"],
-                     attention_heads=cfg["attention_heads"], max_spatial_tokens=cfg["max_spatial_tokens"])
+                     attention_heads=cfg["attention_heads"], max_spatial_tokens=cfg["max_spatial_tokens"],
+                     spatial_kv_pooling=bool(cfg.get("spatial_kv_pooling", False)))
     model = AIRFormer(**model_cfg).to(device)
     x = torch.rand(1, 3, 128, 128, device=device)
     target = x * 0.8

@@ -1,3 +1,8 @@
+> Updated 2026-11-02: historical observations below predate the graph corrections.
+> See [current architecture](architecture/README.md), [local dataset audit](LOCAL_DATASET_AUDIT.json)
+> and timestamped [activity log](../LOG.md) for the current state. Old three-stage
+> checkpoints cannot resume the corrected model.
+
 ﻿# Reproduction status - main-paper architecture re-verification
 
 **NOT EXACT. Full main-paper comparison is complete, but architectural

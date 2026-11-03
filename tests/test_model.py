@@ -3,7 +3,7 @@ from models.airformer import AIRFormer
 
 
 def test_model_shape_backward_odd_input():
-    model=AIRFormer(base_channels=8,stage_blocks=(1,1,1),attention_heads=2,
+    model=AIRFormer(base_channels=8,stage_blocks=(1,1,1,1),attention_heads=2,
                     max_spatial_tokens=64)
     x=torch.rand(1,3,33,47,requires_grad=True)
     y=model(x)
@@ -15,11 +15,11 @@ def test_model_shape_backward_odd_input():
 
 
 def test_checkpoint_state_roundtrip(tmp_path):
-    model=AIRFormer(base_channels=4,stage_blocks=(1,1,1),attention_heads=1,
+    model=AIRFormer(base_channels=4,stage_blocks=(1,1,1,1),attention_heads=1,
                     max_spatial_tokens=16)
     path=tmp_path/"state.pt"
     torch.save({"model":model.state_dict(),"model_config":{"base_channels":4,
-        "stage_blocks":(1,1,1),"attention_heads":1,"max_spatial_tokens":16}},path)
+        "stage_blocks":(1,1,1,1),"attention_heads":1,"max_spatial_tokens":16}},path)
     state=torch.load(path,map_location="cpu",weights_only=True)
     clone=AIRFormer(**state["model_config"])
     clone.load_state_dict(state["model"])

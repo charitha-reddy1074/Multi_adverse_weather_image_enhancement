@@ -2,7 +2,7 @@
 # unresolved engineering defaults; see docs/architecture_assumptions.md.
 # NOT the exact published model: the main-paper recheck confirms graph/parameter
 # mismatches. See docs/architecture/README.md before claiming paper compliance.
-# Numerical values below are unchanged by the architecture documentation review.
+# Four encoder positions corrected; numerical author settings remain unavailable.
 seed: 42
 epochs: 300                 # engineering default; confirm against full paper
 batch_size: 8               # engineering default; confirm against full paper
@@ -15,9 +15,9 @@ mixup_prob: 0.5
 lambda_freq: 0.04
 num_workers: 4
 base_channels: 32           # unresolved; replace if supplementary/code confirms
-stage_blocks: [2, 2, 2]     # unresolved engineering default
+stage_blocks: [2, 2, 2, 2]     # unresolved engineering default
 attention_heads: 4          # unresolved engineering default
-max_spatial_tokens: 1024    # reduced-resolution K/V approximation in attention
+max_spatial_tokens: 1024    # only used when spatial_kv_pooling is enabled
 query_combine: add          # configurable inference; not asserted exact paper rule
 use_supplementary_prior: true
 use_task_queries: true
@@ -33,3 +33,5 @@ gradient_accumulation_steps: 1
 mixed_precision: true
 gradient_checkpointing: false
 balance_weather: false
+
+spatial_kv_pooling: false  # true is a resource approximation

@@ -11,6 +11,7 @@ import json
 import sys
 from pathlib import Path
 from unittest.mock import patch
+import torch.nn.functional as functional
 
 import torch
 import yaml
@@ -38,9 +39,9 @@ def semantic_fingerprints():
         for directory in ("models", "losses") for path in Path(directory).glob("*.py")}
 
 
-def attention_trace(mode, token_cap):
+def attention_trace(mode, token_cap, pooling=False):
     torch.manual_seed(42)
-    module = QueriedAttention(8, mode, heads=2, max_spatial_tokens=token_cap)
+    module = QueriedAttention(8, mode, heads=2, max_spatial_tokens=token_cap, spatial_kv_pooling=pooling)
     x = torch.randn(1, 8, 8, 12, requires_grad=True)
     projections = {}
     handles = []
@@ -48,21 +49,25 @@ def attention_trace(mode, token_cap):
         def capture(_, __, result, name=name):
             projections.setdefault(name, []).append(list(result.shape))
         handles.append(getattr(module, name).register_forward_hook(capture))
-    softmax = torch.softmax
+    sdpa = functional.scaled_dot_product_attention
     attention = []
 
-    def observe(logits, dim, *args, **kwargs):
-        probabilities = softmax(logits, dim, *args, **kwargs)
-        attention.append(dict(logits_shape=list(logits.shape), softmax_dim=dim,
-            max_row_sum_error=(probabilities.sum(dim)-1).abs().max().item()))
-        return probabilities
+    def observe(q, k, v, **kwargs):
+        probabilities = torch.softmax((q @ k.transpose(-1, -2))*kwargs['scale'], dim=-1)
+        result = sdpa(q, k, v, **kwargs)
+        error = (result-probabilities @ v).abs().max().item()
+        assert error < 1e-5
+        attention.append(dict(logits_shape=list(probabilities.shape), softmax_dim=-1,
+            max_row_sum_error=(probabilities.sum(-1)-1).abs().max().item(),
+            sdpa_manual_max_error=error))
+        return result
 
-    with patch("torch.softmax", observe):
+    with patch("torch.nn.functional.scaled_dot_product_attention", observe):
         output = module(x)
         output.square().mean().backward()
     for handle in handles:
         handle.remove()
-    return dict(mode=mode, token_cap=token_cap, input_shape=list(x.shape),
+    return dict(mode=mode, token_cap=token_cap, resource_pooling=pooling, input_shape=list(x.shape),
         projected_shapes=projections, attention=attention,
         query_parameter_shape=list(module.task_query.shape),
         query_gradient_l1=module.task_query.grad.abs().sum().item(),
@@ -110,7 +115,7 @@ def main():
     actual_spatial = MultiDomainConsistencyLoss(lambda_freq=0)(prediction, target)[0].item()
     mean_residual = (prediction-target).mean(dim=(-2, -1))
     literal_spatial = torch.nn.functional.smooth_l1_loss(mean_residual, torch.zeros_like(mean_residual)).item()
-    report = dict(status="NOT EXACT - DOCUMENTED DEVIATIONS", config=args.config,
+    report = dict(status="PAPER-GUIDED WITH EXPLICIT ASSUMPTIONS - CONFIRMED GRAPH CORRECTIONS", config=args.config,
         python_version=sys.version.split()[0], torch_version=torch.__version__,
         source_pdf_sha256=json.loads(Path("docs/architecture/figures/provenance.json").read_text())["source_sha256"],
         paper_depicted_encoder_block_positions=4,
@@ -121,7 +126,7 @@ def main():
         paper_table13_parameters_million=58.34,
         full_model_shape_trace=shape_trace, supplementary_prior_inputs=prior_inputs,
         all_observed_parameter_gradients_finite=all(bool(torch.isfinite(p.grad).all()) for p in model.parameters() if p.grad is not None),
-        attention_traces=[attention_trace(mode, cap) for mode in ("channel", "spatial", "wavelet") for cap in (16, 10000)],
+        attention_traces=[attention_trace(mode, cap) for mode in ("channel", "spatial", "wavelet") for cap in (16, 10000)] + [attention_trace(mode, 16, True) for mode in ("spatial", "wavelet")],
         equation12_counterexample=dict(residual=[1, -1, 1, -1],
             code_mean_elementwise_smooth_l1=actual_spatial, printed_mean_then_smooth_l1=literal_spatial),
         model_and_loss_semantic_ast_unchanged=(current == before) if before else None,

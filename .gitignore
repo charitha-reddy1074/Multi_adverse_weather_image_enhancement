@@ -14,3 +14,11 @@ data/raw/
 data/manifests/*.csv
 data/manifests/*.json
 datasets/AIR40K/
+
+data/manifests/available/*.csv
+data/manifests/available/*.json
+data/manifests/rain_raindrop/*.csv
+data/manifests/rain_raindrop/*.json
+data/manifests/four_weather/*.csv
+data/manifests/four_weather/*.json
+tmp/

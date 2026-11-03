@@ -1,14 +1,14 @@
 {
-  "status": "NOT EXACT - DOCUMENTED DEVIATIONS",
+  "status": "PAPER-GUIDED WITH EXPLICIT ASSUMPTIONS - CONFIRMED GRAPH CORRECTIONS",
   "config": "configs/paper.yaml",
   "python_version": "3.14.6",
   "torch_version": "2.13.0+cu130",
   "source_pdf_sha256": "41d297b56aedd0eaa6ddbbc6f94274f2c679a3e7913c280963bcf092f02d2300",
   "paper_depicted_encoder_block_positions": 4,
   "paper_feature_labels": "x1,x2,x3 are encoder intermediates; x4 is the decoder output",
-  "implemented_encoder_stages": 3,
-  "implemented_decoder_stages": 2,
-  "parameters": 1146883,
+  "implemented_encoder_stages": 4,
+  "implemented_decoder_stages": 3,
+  "parameters": 2762691,
   "paper_table13_parameters_million": 58.34,
   "full_model_shape_trace": [
     {
@@ -66,7 +66,34 @@
       ]
     },
     {
+      "module": "encoder.downsamples.2",
+      "output_shape": [
+        1,
+        256,
+        4,
+        4
+      ]
+    },
+    {
+      "module": "encoder.stages.3",
+      "output_shape": [
+        1,
+        256,
+        4,
+        4
+      ]
+    },
+    {
       "module": "decoder.stages.0",
+      "output_shape": [
+        1,
+        128,
+        8,
+        8
+      ]
+    },
+    {
+      "module": "decoder.stages.1",
       "output_shape": [
         1,
         64,
@@ -75,7 +102,7 @@
       ]
     },
     {
-      "module": "decoder.stages.1",
+      "module": "decoder.stages.2",
       "output_shape": [
         1,
         32,
@@ -121,9 +148,9 @@
       "input_is_zero": false,
       "previous_shape": [
         1,
-        32,
-        32,
-        32
+        64,
+        16,
+        16
       ]
     },
     {
@@ -137,9 +164,9 @@
       "input_is_zero": false,
       "previous_shape": [
         1,
-        64,
-        16,
-        16
+        128,
+        8,
+        8
       ]
     }
   ],
@@ -148,6 +175,7 @@
     {
       "mode": "channel",
       "token_cap": 16,
+      "resource_pooling": false,
       "input_shape": [
         1,
         8,
@@ -189,7 +217,8 @@
             4
           ],
           "softmax_dim": -1,
-          "max_row_sum_error": 1.1920928955078125e-07
+          "max_row_sum_error": 1.1920928955078125e-07,
+          "sdpa_manual_max_error": 1.1920928955078125e-07
         }
       ],
       "query_parameter_shape": [
@@ -198,7 +227,7 @@
         4,
         1
       ],
-      "query_gradient_l1": 0.09795353561639786,
+      "query_gradient_l1": 0.09795354306697845,
       "query_gradient_finite": true,
       "output_shape": [
         1,
@@ -210,6 +239,7 @@
     {
       "mode": "channel",
       "token_cap": 10000,
+      "resource_pooling": false,
       "input_shape": [
         1,
         8,
@@ -251,7 +281,8 @@
             4
           ],
           "softmax_dim": -1,
-          "max_row_sum_error": 1.1920928955078125e-07
+          "max_row_sum_error": 1.1920928955078125e-07,
+          "sdpa_manual_max_error": 1.1920928955078125e-07
         }
       ],
       "query_parameter_shape": [
@@ -260,7 +291,7 @@
         4,
         1
       ],
-      "query_gradient_l1": 0.09795353561639786,
+      "query_gradient_l1": 0.09795354306697845,
       "query_gradient_finite": true,
       "output_shape": [
         1,
@@ -272,80 +303,7 @@
     {
       "mode": "spatial",
       "token_cap": 16,
-      "input_shape": [
-        1,
-        8,
-        8,
-        12
-      ],
-      "projected_shapes": {
-        "q_proj": [
-          [
-            1,
-            8,
-            8,
-            12
-          ]
-        ],
-        "k_proj": [
-          [
-            1,
-            8,
-            8,
-            12
-          ],
-          [
-            1,
-            8,
-            4,
-            4
-          ]
-        ],
-        "v_proj": [
-          [
-            1,
-            8,
-            8,
-            12
-          ],
-          [
-            1,
-            8,
-            4,
-            4
-          ]
-        ]
-      },
-      "attention": [
-        {
-          "logits_shape": [
-            1,
-            2,
-            96,
-            16
-          ],
-          "softmax_dim": -1,
-          "max_row_sum_error": 2.384185791015625e-07
-        }
-      ],
-      "query_parameter_shape": [
-        1,
-        2,
-        1,
-        4
-      ],
-      "query_gradient_l1": 0.004790572449564934,
-      "query_gradient_finite": true,
-      "output_shape": [
-        1,
-        8,
-        8,
-        12
-      ]
-    },
-    {
-      "mode": "spatial",
-      "token_cap": 10000,
+      "resource_pooling": false,
       "input_shape": [
         1,
         8,
@@ -387,7 +345,8 @@
             96
           ],
           "softmax_dim": -1,
-          "max_row_sum_error": 2.384185791015625e-07
+          "max_row_sum_error": 2.384185791015625e-07,
+          "sdpa_manual_max_error": 1.1920928955078125e-07
         }
       ],
       "query_parameter_shape": [
@@ -396,7 +355,71 @@
         1,
         4
       ],
-      "query_gradient_l1": 0.02640567347407341,
+      "query_gradient_l1": 0.02640566974878311,
+      "query_gradient_finite": true,
+      "output_shape": [
+        1,
+        8,
+        8,
+        12
+      ]
+    },
+    {
+      "mode": "spatial",
+      "token_cap": 10000,
+      "resource_pooling": false,
+      "input_shape": [
+        1,
+        8,
+        8,
+        12
+      ],
+      "projected_shapes": {
+        "q_proj": [
+          [
+            1,
+            8,
+            8,
+            12
+          ]
+        ],
+        "k_proj": [
+          [
+            1,
+            8,
+            8,
+            12
+          ]
+        ],
+        "v_proj": [
+          [
+            1,
+            8,
+            8,
+            12
+          ]
+        ]
+      },
+      "attention": [
+        {
+          "logits_shape": [
+            1,
+            2,
+            96,
+            96
+          ],
+          "softmax_dim": -1,
+          "max_row_sum_error": 2.384185791015625e-07,
+          "sdpa_manual_max_error": 1.1920928955078125e-07
+        }
+      ],
+      "query_parameter_shape": [
+        1,
+        2,
+        1,
+        4
+      ],
+      "query_gradient_l1": 0.02640566974878311,
       "query_gradient_finite": true,
       "output_shape": [
         1,
@@ -408,6 +431,7 @@
     {
       "mode": "wavelet",
       "token_cap": 16,
+      "resource_pooling": false,
       "input_shape": [
         1,
         8,
@@ -418,37 +442,25 @@
         "q_proj": [
           [
             1,
-            32,
-            4,
-            6
+            8,
+            8,
+            12
           ]
         ],
         "k_proj": [
           [
             1,
-            32,
+            8,
             4,
             6
-          ],
-          [
-            1,
-            32,
-            4,
-            4
           ]
         ],
         "v_proj": [
           [
             1,
-            32,
+            8,
             4,
             6
-          ],
-          [
-            1,
-            32,
-            4,
-            4
           ]
         ]
       },
@@ -457,20 +469,21 @@
           "logits_shape": [
             1,
             2,
-            24,
-            16
+            96,
+            24
           ],
           "softmax_dim": -1,
-          "max_row_sum_error": 1.1920928955078125e-07
+          "max_row_sum_error": 1.7881393432617188e-07,
+          "sdpa_manual_max_error": 8.940696716308594e-08
         }
       ],
       "query_parameter_shape": [
         1,
         2,
         1,
-        16
+        4
       ],
-      "query_gradient_l1": 0.009732280857861042,
+      "query_gradient_l1": 0.006006128154695034,
       "query_gradient_finite": true,
       "output_shape": [
         1,
@@ -482,6 +495,7 @@
     {
       "mode": "wavelet",
       "token_cap": 10000,
+      "resource_pooling": false,
       "input_shape": [
         1,
         8,
@@ -492,15 +506,15 @@
         "q_proj": [
           [
             1,
-            32,
-            4,
-            6
+            8,
+            8,
+            12
           ]
         ],
         "k_proj": [
           [
             1,
-            32,
+            8,
             4,
             6
           ]
@@ -508,7 +522,7 @@
         "v_proj": [
           [
             1,
-            32,
+            8,
             4,
             6
           ]
@@ -519,20 +533,149 @@
           "logits_shape": [
             1,
             2,
-            24,
+            96,
             24
           ],
           "softmax_dim": -1,
-          "max_row_sum_error": 1.1920928955078125e-07
+          "max_row_sum_error": 1.7881393432617188e-07,
+          "sdpa_manual_max_error": 8.940696716308594e-08
         }
       ],
       "query_parameter_shape": [
         1,
         2,
         1,
-        16
+        4
       ],
-      "query_gradient_l1": 0.011741087771952152,
+      "query_gradient_l1": 0.006006128154695034,
+      "query_gradient_finite": true,
+      "output_shape": [
+        1,
+        8,
+        8,
+        12
+      ]
+    },
+    {
+      "mode": "spatial",
+      "token_cap": 16,
+      "resource_pooling": true,
+      "input_shape": [
+        1,
+        8,
+        8,
+        12
+      ],
+      "projected_shapes": {
+        "q_proj": [
+          [
+            1,
+            8,
+            8,
+            12
+          ]
+        ],
+        "k_proj": [
+          [
+            1,
+            8,
+            4,
+            4
+          ]
+        ],
+        "v_proj": [
+          [
+            1,
+            8,
+            4,
+            4
+          ]
+        ]
+      },
+      "attention": [
+        {
+          "logits_shape": [
+            1,
+            2,
+            96,
+            16
+          ],
+          "softmax_dim": -1,
+          "max_row_sum_error": 2.384185791015625e-07,
+          "sdpa_manual_max_error": 1.1920928955078125e-07
+        }
+      ],
+      "query_parameter_shape": [
+        1,
+        2,
+        1,
+        4
+      ],
+      "query_gradient_l1": 0.0047905719839036465,
+      "query_gradient_finite": true,
+      "output_shape": [
+        1,
+        8,
+        8,
+        12
+      ]
+    },
+    {
+      "mode": "wavelet",
+      "token_cap": 16,
+      "resource_pooling": true,
+      "input_shape": [
+        1,
+        8,
+        8,
+        12
+      ],
+      "projected_shapes": {
+        "q_proj": [
+          [
+            1,
+            8,
+            8,
+            12
+          ]
+        ],
+        "k_proj": [
+          [
+            1,
+            8,
+            4,
+            4
+          ]
+        ],
+        "v_proj": [
+          [
+            1,
+            8,
+            4,
+            4
+          ]
+        ]
+      },
+      "attention": [
+        {
+          "logits_shape": [
+            1,
+            2,
+            96,
+            16
+          ],
+          "softmax_dim": -1,
+          "max_row_sum_error": 2.384185791015625e-07,
+          "sdpa_manual_max_error": 8.940696716308594e-08
+        }
+      ],
+      "query_parameter_shape": [
+        1,
+        2,
+        1,
+        4
+      ],
+      "query_gradient_l1": 0.004410111345350742,
       "query_gradient_finite": true,
       "output_shape": [
         1,
@@ -552,14 +695,14 @@
     "code_mean_elementwise_smooth_l1": 0.5,
     "printed_mean_then_smooth_l1": 0.0
   },
-  "model_and_loss_semantic_ast_unchanged": true,
+  "model_and_loss_semantic_ast_unchanged": false,
   "semantic_ast_fingerprints": {
-    "models/airformer.py": "8776623ff119dea73bac2a4909eda1c22894ef5981bfc93c68f4599cbeec8b3b",
-    "models/attention.py": "5edef7f70b507d228c1494585d6761beabc3fd5bdab84b53beb743590f5866ae",
-    "models/decoder.py": "f5bcd06a8722fc28adf92a59e72c10d9c87dca638f70c54bd19bffdab5597ae4",
-    "models/encoder.py": "6f5ae145cdc4d3331bc2e6eea9c22314c538e82cfaf31642158e372a6d627840",
+    "models/airformer.py": "87d488c6c2bce0190547a4c546105c9cb1111de5476fa316218b4f06f8a7af99",
+    "models/attention.py": "8400a4a16e001807f3cd18996a20366c0984030c5f181d5a4cf9055469eab10a",
+    "models/decoder.py": "cae8157ac52e10ad5c44349d7a986a3823b19d1a6d29052adb70a15a9673832b",
+    "models/encoder.py": "b38a8f8602f76045a626cc244b015406a24b290f2b4d38985b406f20e3ad85c4",
     "models/patch_embed.py": "a3c40f458661d8ac518e891d9425e4394628c4f9b79c31514fe7b4b81cf8e82d",
-    "models/supplementary_prior.py": "ce580a73b4a290ef93892ed1bad8b81a9d7443ddd36dd5cd2afd5a7864aef194",
+    "models/supplementary_prior.py": "de3c45d9bc03829bea0e776ae74a4b23a58b086f757b107a07ae80f75ec4f8a7",
     "models/__init__.py": "1d98ea7e28ee663fd5c91b7b2631eeaffa4046f214c03243d2bc25b3b67007c2",
     "losses/multidomain.py": "260da200457a9d45d8c48cba0cb7253d24bce0d60c96441f2773994eb8f83951",
     "losses/__init__.py": "0a42fafa4c07536d2d3e381a6bb43554ff129b569f69ca693c83e4ab326f1727"

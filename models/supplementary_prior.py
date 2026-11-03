@@ -39,7 +39,7 @@ class SupplementaryPrior(nn.Module):
     fused-filter branches concatenated before refinement. These chosen tensors
     and filters are not established as equivalent by Eq. (10). See A02/A03.
     """
-    def __init__(self, channels, previous_channels=None):
+    def __init__(self, channels, previous_channels=None, output_channels=None):
         super().__init__()
         # III-A supports preserving low frequencies while filtering details.
         # The exact 3x3 detail filter and 6C fusion below are chosen internals.
@@ -51,6 +51,9 @@ class SupplementaryPrior(nn.Module):
                                     nn.Conv2d(channels, channels, 3, padding=1, groups=channels),
                                     nn.GELU(), nn.Conv2d(channels, channels, 1))
         self.prev_proj = nn.Conv2d(previous_channels or channels, channels, 1)
+        # Assumed alignment operator: author kernels/strides remain unspecified.
+        self.output_proj = (nn.Conv2d(channels, output_channels, 3, stride=2, padding=1)
+                            if output_channels is not None else nn.Identity())
 
     def filter_wavelet_bands(self, encoder_feature):
         b,c=encoder_feature.shape[:2]
@@ -72,7 +75,6 @@ class SupplementaryPrior(nn.Module):
         prev = torch.zeros_like(encoder_feature) if previous_prior is None else previous_prior
         if prev.shape[-2:] != (h,w):
             prev = F.interpolate(prev, size=(h,w), mode="bilinear", align_corners=False)
-        if prev.shape[1] != c:
-            prev = self.prev_proj(prev)
+        prev = self.prev_proj(prev)
         prior = self.fuse(torch.cat((encoder_feature, bands, prev), dim=1))
-        return prior + self.refine(prior)
+        return self.output_proj(prior + self.refine(prior))

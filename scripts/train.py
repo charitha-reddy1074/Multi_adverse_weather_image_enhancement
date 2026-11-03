@@ -1,4 +1,5 @@
 import argparse
+import json
 import random
 import sys
 from pathlib import Path
@@ -93,10 +94,16 @@ def main():
     train_ds=PairedWeatherDataset(train_root,cfg["crop_size"],True,
         cfg.get("mixup_prob",.5),manifest=train_manifest if train_manifest.is_file() else None,
         balance_weather=bool(cfg.get("balance_weather",False)))
-    val_ds=PairedWeatherDataset(val_root,None,False,
-        manifest=val_manifest if val_manifest.is_file() else None)
-    assert_disjoint_datasets(train_ds, val_ds)
-    for dataset, expected in ((train_ds, "train"), (val_ds, "val")):
+    validation_enabled = bool(cfg.get("validation_enabled", True))
+    val_ds=(PairedWeatherDataset(val_root,None,False,
+        manifest=val_manifest if val_manifest.is_file() else None) if validation_enabled else None)
+    test_ds = None
+    if not validation_enabled and cfg.get("test_manifest"):
+        test_ds = PairedWeatherDataset(train_root, None, False, manifest=cfg["test_manifest"])
+    assert_disjoint_datasets(*[ds for ds in (train_ds, val_ds, test_ds) if ds is not None])
+    for dataset, expected in ((train_ds, "train"), (val_ds, "val"), (test_ds, "test")):
+        if dataset is None:
+            continue
         if any(row[4] not in (expected, "unknown", "") for row in dataset.records):
             raise ValueError(f"Expected {expected} records; official test records cannot be used for model selection")
     sampler=None
@@ -108,10 +115,10 @@ def main():
                        batch_size=cfg["batch_size"], shuffle=sampler is None,sampler=sampler,
                        num_workers=workers, pin_memory=device.type == "cuda",
                        drop_last=False,worker_init_fn=seed_worker,generator=generator)
-    val = DataLoader(val_ds, batch_size=1, shuffle=False,
-                     num_workers=workers,worker_init_fn=seed_worker)
+    val = (DataLoader(val_ds, batch_size=1, shuffle=False,
+                     num_workers=workers,worker_init_fn=seed_worker) if val_ds is not None else None)
     model_cfg = {"base_channels": int(cfg["base_channels"]),
-                 "stage_blocks": tuple(cfg.get("stage_blocks", (2, 2, 2))),
+                 "stage_blocks": tuple(cfg.get("stage_blocks", (2, 2, 2, 2))),
                  "attention_heads": int(cfg.get("attention_heads",4)),
                  "max_spatial_tokens": int(cfg.get("max_spatial_tokens",1024)),
                  "use_supplementary_prior": bool(cfg.get("use_supplementary_prior",True)),
@@ -119,6 +126,7 @@ def main():
                  "use_frequency_decoder": bool(cfg.get("use_frequency_decoder",True)),
                  "residual_image": bool(cfg.get("residual_image",True)),
                  "gradient_checkpointing": bool(cfg.get("gradient_checkpointing",False)),
+                 "spatial_kv_pooling": bool(cfg.get("spatial_kv_pooling",False)),
                  "query_combine": cfg.get("query_combine","add"),
                  "attention_order": tuple(cfg.get("attention_order",("channel","space","wavelet")))}
     model_cfg["encoder_token_mixer"]=cfg.get("encoder_token_mixer","pooling")
@@ -188,14 +196,15 @@ def main():
             running.append(raw_loss.item())
             bar.set_postfix(loss=f"{loss.item():.4f}")
         sched.step()
-        metrics = validate(model, val, loss_fn, device)
+        metrics = validate(model, val, loss_fn, device) if val is not None else None
         train_loss=float(np.mean(running))
         writer.add_scalar("loss/train",train_loss,epoch+1)
-        writer.add_scalar("loss/validation",metrics["loss"],epoch+1)
-        writer.add_scalar("metrics/psnr",metrics["psnr"],epoch+1)
-        writer.add_scalar("metrics/ssim",metrics["ssim"],epoch+1)
+        if metrics is not None:
+            writer.add_scalar("loss/validation",metrics["loss"],epoch+1)
+            writer.add_scalar("metrics/psnr",metrics["psnr"],epoch+1)
+            writer.add_scalar("metrics/ssim",metrics["ssim"],epoch+1)
         writer.add_scalar("learning_rate",opt.param_groups[0]["lr"],epoch+1)
-        is_best=metrics["loss"]<best
+        is_best=metrics is not None and metrics["loss"]<best
         if is_best: best=metrics["loss"]
         state = {"epoch": epoch + 1, "model": model.state_dict(),
                  "optimizer": opt.state_dict(), "scheduler": sched.state_dict(),
@@ -208,10 +217,20 @@ def main():
             "cuda":torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []}
         torch.save(state, out / "latest.pt")
         if is_best: torch.save(state, out / "best.pt")
-        writer.add_scalar("loss/best_validation",best,epoch+1)
-        print(f"epoch={epoch+1} train_loss={train_loss:.6f} "
+        if metrics is None:
+            print(f"epoch={epoch+1} train_loss={train_loss:.6f}; no validation/model selection")
+        else:
+            writer.add_scalar("loss/best_validation",best,epoch+1)
+            print(f"epoch={epoch+1} train_loss={train_loss:.6f} "
               f"val_loss={metrics['loss']:.6f} PSNR={metrics['psnr']:.4f} "
               f"SSIM={metrics['ssim']:.6f} best_val={best:.6f}")
+    # With a train/test-only experiment, evaluate the fixed final model once.
+    # Test loss never selects a checkpoint or changes the training schedule.
+    if test_ds is not None:
+        loader = DataLoader(test_ds, batch_size=1, shuffle=False, num_workers=workers)
+        final_test = validate(model, loader, loss_fn, device)
+        (out / "final_test.json").write_text(json.dumps(final_test, indent=2), encoding="utf8")
+        print(f"final_test={final_test}")
     writer.close()
 
 

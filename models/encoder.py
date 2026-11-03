@@ -53,9 +53,11 @@ class FrequencyGuidedBlock(nn.Module):
 
 
 class HierarchicalEncoder(nn.Module):
-    def __init__(self, channels=(32, 64, 128), depths=(2, 2, 2),
+    def __init__(self, channels=(32, 64, 128, 256), depths=(2, 2, 2, 2),
                  token_mixer="pooling",attention_heads=4,max_spatial_tokens=1024):
         super().__init__()
+        if len(channels) != 4 or len(depths) != 4:
+            raise ValueError("Figure 4 requires four encoder positions")
         self.stages = nn.ModuleList([
             nn.Sequential(*(FrequencyGuidedBlock(c,token_mixer=token_mixer,
                 attention_heads=attention_heads,max_spatial_tokens=max_spatial_tokens)
@@ -72,21 +74,18 @@ class HierarchicalEncoder(nn.Module):
         previous = None
         for i, stage in enumerate(self.stages):
             if i:
+                preceding = x
                 x = self.downsamples[i-1](x)
+                if supplementary_modules is not None:
+                    # Eq. 10: first SP sees zero feature and zero prior. Later
+                    # SPs see the preceding enhanced stage and preceding SP.
+                    source = torch.zeros_like(preceding) if i == 1 else preceding
+                    prev = torch.zeros_like(preceding) if i == 1 else previous
+                    previous = supplementary_modules[i-1](source, prev)
+                    if previous.shape != x.shape:
+                        raise RuntimeError("Supplementary prior and patch embedding must align")
+                    priors.append(previous)
+                    x = x + previous
             x = stage(x)
-            # A02: SP is computed from this stage's *post-block* feature and
-            # added after the block. Fig. 4 instead draws prior addition after
-            # the next patch embedding and before its encoder block. These
-            # graphs are not equivalent; this code is preserved for the audit.
-            if supplementary_modules is not None:
-                if i == 0:
-                    # Eq. (10)'s zero initialization is reproduced, but not its
-                    # complete previous-stage routing (see A02 above).
-                    zero = torch.zeros_like(x)
-                    previous = supplementary_modules[i](zero, zero)
-                else:
-                    previous = supplementary_modules[i](x, previous)
-                priors.append(previous)
-                x = x + previous
             features.append(x)
         return features, priors

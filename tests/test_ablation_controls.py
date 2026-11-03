@@ -37,7 +37,7 @@ def test_encoder_token_mixer_ablation_shapes():
 
 
 def test_model_exposes_component_ablation_switches():
-    model=AIRFormer(base_channels=4,stage_blocks=(1,1,1),attention_heads=1,
+    model=AIRFormer(base_channels=4,stage_blocks=(1,1,1,1),attention_heads=1,
         encoder_token_mixer="self_attention",use_supplementary_prior=False,
         use_task_queries=False,decoder_mode="spatial")
     y=model(torch.rand(1,3,17,19))

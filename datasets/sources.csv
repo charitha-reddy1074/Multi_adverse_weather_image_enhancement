@@ -10,7 +10,7 @@ Snow100K-L,snow,https://sites.google.com/view/yunfuliu/desnownet,owner project p
 Snow100K-M,snow,https://sites.google.com/view/yunfuliu/desnownet,owner project page and archives,yes,16588 test pairs; already part of AIR40K list
 Snow100K-S,snow,https://sites.google.com/view/yunfuliu/desnownet,owner project page and archives,yes,16611 test pairs; already part of AIR40K list
 CSD,snow,https://github.com/weitingchen83/ICCV2021-Single-Image-Desnowing-HDCWNet,author project,yes,Comprehensive snow dataset
-RESIDE ITS,haze,https://sites.google.com/view/reside-dehaze-datasets/,official project page,yes,Haze dataset; access terms may apply
+RESIDE ITS,haze,https://sites.google.com/view/reside-dehaze-datasets/reside-standard,official project page; local mirror content verified,yes,See RESIDE-ITS-HF-val-custom for local experiment; matching full ITS training haze files not downloaded
 RESIDE OTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,official project page,yes,Haze dataset; access terms may apply
 RESIDE HSTS,haze,https://sites.google.com/view/reside-dehaze-datasets/,official project page,yes,Haze dataset; access terms may apply
 Rain200H,rain,https://www.icst.pku.edu.cn/struct/Projects/joint_rain_removal.html,documented project page,yes,1800 train and 200 test pairs; synthetic heavy rain
@@ -21,3 +21,4 @@ CDD-11,mixed_weather,https://github.com/gy65896/OneRestore,owner repository link
 SPA-Data,rain,https://stevewongv.github.io/derain-project.html,original project page,yes,Real-world rain; 1000 test pairs; train sample count depends on patch extraction protocol
 RESIDE-S,sand_dust,https://openaccess.thecvf.com/content/CVPR2025W/WiCV/html/Mishra_Dust_to_Detail_Restoring_Sand-dust_Images_with_Frequency-Guided_Attention_and_Multi-Scale_Features_CVPRW_2025_paper.html,paper-described derived benchmark,yes,Distinct from RESIDE haze; canonical standalone archive not confirmed
 ACDC20,mixed_weather,https://acdc.vision.ee.ethz.ch/,official academic dataset page,weak_correspondence,4006 adverse images fog night rain snow; normal-condition same-scene images are not pixel-aligned restoration targets
+RESIDE-ITS-HF-val-custom,haze,https://huggingface.co/datasets/dronefreak/RESIDE-ITS,11000 local PNG files SHA-256 matched on 2026-11-03,yes,Unofficial mirror revision 39300fc7deb9138a59d5489f91a2f86d14d62eb6; val/haze 10000 inputs plus val/clear 1000 targets; custom 8000 train and 2000 test; not SOTS or official ITS training; mirror license unknown; docs/RESIDE_MIRROR_VERIFICATION.json

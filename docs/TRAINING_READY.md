@@ -1,95 +1,55 @@
-# Local setup and training
+# Local training readiness - 2026-11-02
 
-Status: **ready for a Rain14000 source-release training experiment**.
-**Not ready for a verified AIR40K all-weather reproduction.** Rain800,
-Rain100H/L, Rain1200, raindrop, snow and haze data are still blocked/partial.
-No full training was launched by this audit.
+The corrected model and **58,766 training / 14,695
+test pairs** are ready for a custom experiment with four weather types. The user
+requested **80/20 training/testing only**, so there is no validation set.
+[Dataset details and missing components](DATASET_STATUS.md).
 
-Architecture re-verification is now complete and finds the implementation is
-**not the exact AIRFormer graph**. See `architecture/README.md` for extracted
-figures and differences. The ready pipeline trains the current reconstruction.
-For the user's strict-paper objective, resolve those architecture differences
-before investing in full training; later graph corrections may change checkpoint
-compatibility. Working training does not establish paper fidelity.
-
-The isolated `.venv/` has Python 3.14.6, torch 2.13.0+cu130,
-torchvision 0.28.0+cu130, TensorBoard and the project dependencies. CUDA was
-tested on the NVIDIA RTX 2000 Ada Generation (16 GiB). Python/PyTorch/CUDA
-versions are local choices, not claims about the paper. The complete installed
-package snapshot is `requirements-lock-windows-cu130.txt`.
-
-Available manifests under `data/manifests/`:
-
-- `train.csv`: 11,970 Rain14000 input/target pairs.
-- `val.csv`: 630 pairs from 45 disjoint official-training clean scenes.
-- `test.csv`: 1,400 official Rain14000 pairs plus 12 Rain12 pairs.
-- `integrity.json`: full decoding, image-size and clean-pixel split checks.
-
-From this repository in PowerShell:
+## Start from scratch
 
 ```powershell
-# Start the resource-efficient experiment; this will take substantial time.
-./.venv/Scripts/python train.py --config configs/pilot.yaml --output checkpoints/pilot
-
-# Resume the same experiment/configuration.
-./.venv/Scripts/python train.py --config configs/pilot.yaml --resume checkpoints/pilot/latest.pt --output checkpoints/pilot
-
-# After training, demonstrate the saved weights without training again.
-./.venv/Scripts/python inference.py --input path/to/images --checkpoint checkpoints/pilot/best.pt --output outputs/demo --device cuda
-
-# Quantitative evaluation requires matching held-out clean references.
-./.venv/Scripts/python evaluate.py --pred outputs/demo --target path/to/matching/clean/images --csv results/demo_metrics.csv
+./.venv/Scripts/python train.py --config configs/local_available.yaml --output checkpoints/local80_20
 ```
 
-The same trained weights serve all weather inputs; quality on a weather type
-requires appropriate training coverage. Rain-only training is not proof of
-effective raindrop/snow/haze restoration. Once weights are trained and saved,
-testing/demonstration requires only loading the checkpoint and inference. You
-do **not** retrain for each demonstration or program restart. Keep both the
-checkpoint and its saved `model_config`. Retrain or fine-tune only to change
-learned behavior or improve performance.
+This uses the corrected four-position hierarchy, prior routing and wavelet decoder.
+It is a resource-adapted paper-guided experiment: base width 16, one block at each
+of four encoder positions, 128x128 crops, explicit pooled spatial/wavelet K/V,
+batch 2, gradient accumulation 4, 20 assumed epochs and balanced weather sampling.
+The 612,435-parameter model is not the authors' 58.34M model. Haze source/split
+is unverified, so no canonical RESIDE/AIR40K claim can be made.
 
-`configs/paper.yaml` retains the requested optimizer/loss/augmentation settings,
-but original width/depth/batch/epoch/query/fusion details are unresolved, and
-pooled K/V is an adaptation. Do not describe it as exact paper reproduction.
-It is independent of `configs/pilot.yaml`; no hardware adaptation overwrites it.
-Paper config batch 8 training memory has not been measured on this GPU. Begin
-with pilot rather than assuming the paper config fits.
+The trainer saves `latest.pt` after each epoch. With validation disabled, it does
+not select a best checkpoint. It evaluates the custom test set only after the
+fixed epoch schedule and writes `final_test.json`. Keep that test set held out;
+do not tune hyperparameters against repeated test runs. The separate known
+official tests are not consumed by this config.
 
-| Setting | Paper-oriented config | Resource-efficient pilot |
-|---|---|---|
-| crop / batch | 256 / 8 | 128 / 2 |
-| base width / blocks | 32 / [2,2,2] (assumed) | 16 / [1,1,1] |
-| heads / K,V token cap | 4 / 1024 (assumed/adapted) | 2 / 256 |
-| epochs | 300 (assumed) | 20 |
-| cosine minimum LR | 1e-7 | 1e-6 |
-| gradient accumulation | 1 | 4 |
-| mixed precision | enabled locally | enabled locally |
-
-Both use AdamW (.9,.999), weight decay1e-4, initial LR2e-4, MixUp probability.5,
-the same Smooth L1 + .04*DCT-frequency loss, and the same three-domain decoder
-mechanisms. These differences are explicit; neither config is overwritten.
-
-Rebuild manifests on another machine (absolute local file paths are regenerated):
+The current task performed fresh diagnostic optimization and feasibility checks,
+**not a full 20-epoch dataset training run**. No old checkpoint was resumed.
+The old three-position diagnostic checkpoint is incompatible with this model.
+Resume only a checkpoint created with the current config and graph:
 
 ```powershell
-./scripts/download_required.ps1 -Datasets Rain14000,Rain12
-./.venv/Scripts/python scripts/prepare_available_data.py
-./.venv/Scripts/python -m pytest tests -q
+./.venv/Scripts/python train.py --config configs/local_available.yaml --resume checkpoints/local80_20/latest.pt --output checkpoints/local80_20
 ```
 
-Downloads retain partial files and preserve original archives. Dataset licenses,
-sizes and blocked access conditions are in `datasets/downloads.csv` and
-`docs/DATASET_STATUS.md`. Do not mix official test data into training/validation.
-Original AIR40K sampling is unavailable; do not silently force Table I counts.
+## Strict spatial attention on this machine
 
-For a fresh Windows/Python-3.14 environment with this supported CUDA driver,
-create a venv, install the explicit CUDA-tagged torch/torchvision pair from
-`https://download.pytorch.org/whl/cu130`, then install the lock file with
-`--extra-index-url https://download.pytorch.org/whl/cu130`. Other platforms need
-a compatible PyTorch build; this Windows snapshot is not a universal lockfile.
+`configs/paper.yaml` disables K/V pooling and uses full-key attention. It still
+contains unverified numerical architecture/reconstruction/query assumptions.
+The RTX 2000 Ada (16 GiB) has passed a fresh strict batch-one 256x256
+forward/backward/optimizer step: **99.77 seconds**, **0.947 GiB peak allocated
+CUDA memory**. Query chunking and recomputation preserve every key; they do not
+approximate the attention axis. The initial unchunked attempt ran out of memory
+because this Windows PyTorch build has no compiled Flash Attention kernel.
+[Measured evidence](architecture/system_validation.json).
 
-`outputs/audit_smoke/checkpoints/` contains only a two-step-per-epoch integration
-fixture trained for two tiny epochs. Its visual output is poor, as expected.
-It verifies CLI wiring, serialization/resume, padding/cropping, held-out RGB
-metrics and CUDA execution. **Do not use or distribute it as a pretrained model.**
+For a custom strict experiment, copy the local config, set
+`spatial_kv_pooling: false`, and choose the crop/width/depth/batch deliberately.
+The measured paper-guided batch-one path is substantially slower than the pooled
+pilot; a completed long run has not been benchmarked. Do not assume the paper's
+runtime or FLOPs apply to the chosen widths/strides here.
+
+**Exact reproduction still requires** the supplementary/original model settings,
+query/SP/tail details, loss-reduction clarification and AIR40K membership.
+See [current architecture review](architecture/README.md) and [activity log](../LOG.md).

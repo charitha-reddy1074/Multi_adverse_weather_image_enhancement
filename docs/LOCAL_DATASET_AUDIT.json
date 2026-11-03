@@ -1,0 +1,112 @@
+{
+  "started_at": "2026-11-02T09:29:22.596645+00:00",
+  "archives": {
+    "Rain14000.zip": {
+      "status": "EXTRACTED",
+      "bytes": 898292342,
+      "sha256": "c967e0bc33e2ab70828aa614c000024a695b532684ddced9b83a75b941e91674",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000"
+    },
+    "Rain12.zip": {
+      "status": "EXTRACTED",
+      "bytes": 7351249,
+      "sha256": "3ba5f100149158a8f6378b48203646565fd21a7b394b4ef33124ff5c4fae0581",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain12"
+    },
+    "train.zip": {
+      "status": "EXTRACTED",
+      "bytes": 1065241444,
+      "sha256": "6b71a2d19cd9646b568cb75411d7090787590eb2350264b9fc9a2bf1075a47f2",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Raindrop"
+    },
+    "Snow100K-training.tar.gz": {
+      "status": "EXTRACTED",
+      "bytes": 8339771404,
+      "sha256": "75624da5140adf1a9e10298885cdb30fb319732f0012b10c5b5fb51a7ad64cf5",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Snow100K-training"
+    },
+    "clear.zip": {
+      "status": "EXTRACTED",
+      "bytes": 324881167,
+      "sha256": "f2045a51795f1a72ceab92b16b1202e72fab561e5a3834d847ecb2ac8d8d9f0b",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\haze-candidates"
+    },
+    "haze.zip": {
+      "status": "EXTRACTED",
+      "bytes": 2589631082,
+      "sha256": "369d71c57cc74535cbf2163e97f1903fe5040a71ff7c2fcbbc86edcbf9977f6d",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\haze-candidates"
+    },
+    "trans.zip": {
+      "status": "EXTRACTED",
+      "bytes": 281023319,
+      "sha256": "5bbdb86935be1e5c991e61ce49061973a08628a1b14a7b6672adc5d962e4b547",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\haze-candidates"
+    },
+    "ITS_clear.zip": {
+      "status": "EXTRACTED",
+      "bytes": 4186836769,
+      "sha256": "b99d3d9b8bbae65c9f17cadd1f63fe347ced013198c78b140c5f41ddf7a245b2",
+      "destination": "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\ITS-unpaired"
+    }
+  },
+  "issues": [],
+  "limitations": [
+    "Exact AIR40K membership and Snow100K-L training selection unavailable.",
+    "Haze original source/split unknown: custom experiment only, no canonical benchmark claims.",
+    "ITS_clear has no matching local ITS haze archive; trans is not RGB clean ground truth.",
+    "Exact duplicates are grouped; near-duplicate scenes may still require source metadata review."
+  ],
+  "finished_at": "2026-11-02T09:55:55.917399+00:00",
+  "invalid_pairs": [],
+  "counts": {
+    "Rain14000/train": 10080,
+    "Rain14000/test": 2520,
+    "Raindrop/train": 688,
+    "Raindrop/test": 173,
+    "Snow100K-training/train": 39998,
+    "Snow100K-training/test": 10002,
+    "UNVERIFIED-haze-release/train": 8000,
+    "UNVERIFIED-haze-release/test": 2000
+  },
+  "excluded_test_overlap": 0,
+  "duplicate_inputs": [
+    [
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\240_7.jpg",
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\240_6.jpg"
+    ],
+    [
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\700_5.jpg",
+      "D:\\Multi_adverse_weather_image_enhancement\\data\\raw\\extracted\\Rain14000\\rainy_image_dataset\\training\\rainy_image\\700_2.jpg"
+    ]
+  ],
+  "training_weather": [
+    "haze",
+    "rain",
+    "raindrop",
+    "snow"
+  ],
+  "status": "READY FOR CUSTOM FOUR-WEATHER EXPERIMENT; NOT AIR40K",
+  "source_membership": "Custom local experiment; not AIR40K",
+  "seed": 42,
+  "split_policy": "User requested train/test only, 80/20 per-source clean-identity groups; no validation split",
+  "custom_pairs": 73461,
+  "training_pairs": 58766,
+  "testing_pairs": 14695,
+  "training_fraction": 0.7999618845373736,
+  "validation_pairs": 0,
+  "official_test_pairs": 1412,
+  "haze_policy": "User-authorized custom 80/20 split; original release and split unverified; not a RESIDE/AIR40K benchmark claim",
+  "identity_checks": "No scene, identical clean pixels or identical input bytes cross custom train/test; known official tests excluded",
+  "unpaired_clean_images": 10000,
+  "auxiliary_transmission_maps": 10000,
+  "invalid_pair_count": 0,
+  "visual_spotcheck": "One raindrop, snow and haze pair inspected; matching scene structure; temporary contact sheet removed",
+  "filesystem_recheck": {
+    "timestamp": "2026-11-02T10:17:13.652248+00:00",
+    "unique_referenced_files": 127746,
+    "missing_files": 0,
+    "scene_overlap_count": 0,
+    "scope": "File existence and manifest scene IDs; earlier full decode and pixel-hash audit not repeated"
+  }
+}

@@ -11,7 +11,7 @@ mixup_prob: 0.5
 lambda_freq: 0.04
 num_workers: 2
 base_channels: 16
-stage_blocks: [1, 1, 1]
+stage_blocks: [1, 1, 1, 1]
 attention_heads: 2
 max_spatial_tokens: 256
 query_combine: add
@@ -29,3 +29,5 @@ gradient_accumulation_steps: 4
 mixed_precision: true
 gradient_checkpointing: false
 balance_weather: false
+
+spatial_kv_pooling: true  # true is a resource approximation
