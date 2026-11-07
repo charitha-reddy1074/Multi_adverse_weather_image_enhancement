@@ -1,5 +1,42 @@
 # Train the four-weather model
 
+## Paused after epoch 3 — 4 November 2026
+
+Training was stopped at the user's request. `epoch_003.pt` is a verified copy of
+the completed epoch-3 checkpoint, including optimizer, scheduler, AMP and RNG
+state. Partial epoch-4 progress was discarded. The datasets remain unchanged.
+Resume from epoch 4 using:
+
+```powershell
+.venv/Scripts/python -u train.py --config configs/four_weather_fast.yaml --resume checkpoints/four_weather_20261104_fast/epoch_003.pt --output checkpoints/four_weather_20261104_fast
+```
+
+The command above runs in the foreground; the old launcher's status/log are not
+updated by a direct resume. The paused status records the intended resume command.
+
+## Active optimized run — 4 November 2026
+
+The active background job uses `configs/four_weather_fast.yaml` and writes to
+`checkpoints/four_weather_20261104_fast/`. It retains all prepared training pairs,
+the held-out test split, model, crop size and 20 epochs. Batch size is 8 with one
+accumulation step, retaining the original effective batch size of 8.
+
+The short synthetic GPU benchmark measured 17.38 images/second versus 10.08 for
+batch size 2 / accumulation 4. This projects approximately 18.8 hours of GPU
+training computation; data loading, startup checks and final evaluation add time.
+Actual completion time is not yet measured. Evidence:
+`outputs/training_batch_benchmark.json`.
+
+```powershell
+Get-Content checkpoints/four_weather_20261104_fast/status.json
+Get-Content checkpoints/four_weather_20261104_fast/training.log -Tail 8
+```
+
+The earlier `four_weather_20261104_restart` process was deliberately stopped
+during startup to apply this change. Use the active output directory above for
+monitoring and the fast config for any resume. The original walkthrough below
+describes the earlier batch-size-2 setup.
+
 Run these commands in PowerShell from `D:\Multi_adverse_weather_image_enhancement`.
 Training runs locally and does not need an open Codex conversation or API credits.
 Keep the computer powered on, connected to power, and awake while it runs.

@@ -144,3 +144,87 @@ being committed/pushed after checks for this update.
 ## 2026-11-02T15:51:34+05:30 - Training job
 
 - Started fresh training with configs/rain_raindrop.yaml; PID 28156; output D:\Multi_adverse_weather_image_enhancement\checkpoints\rain_raindrop. Training and test membership are fixed by the config.
+
+
+## 2026-11-04T12:49:18+05:30 - Training job
+
+- Started fresh training with configs/four_weather.yaml; PID 22644; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104. Training and test membership are fixed by the config.
+
+
+## 2026-11-04T13:04:00+05:30 - Training job
+
+- Training failed: configs/four_weather.yaml; exit code 1073807364; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104. See training.log and status.json for evidence.
+
+
+## 2026-11-04T13:06:24+05:30 - Training job
+
+- Started fresh training with configs/four_weather.yaml; PID 22728; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104_restart. Training and test membership are fixed by the config.
+
+
+## 2026-11-04T13:10:47+05:30 - Training job
+
+- Training failed: configs/four_weather.yaml; exit code 1; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104_restart. See training.log and status.json for evidence.
+
+
+## 2026-11-04T13:10:47+05:30 - Training job
+
+- Started fresh training with configs/four_weather_fast.yaml; PID 20980; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104_fast. Training and test membership are fixed by the config.
+
+
+## 2026-11-04 - Four-weather throughput optimization
+
+- User requested reducing training time. Benchmarked identical model/crops/AMP at effective batch size 8: batch 2/accumulation 4 = 10.08 images/s; batch 4/accumulation 2 = 14.77 images/s; batch 8/accumulation 1 = 17.38 images/s. Synthetic GPU-only timings exclude data loading and final evaluation; evidence in outputs/training_batch_benchmark.json.
+- Deliberately stopped the restart job during startup (no checkpoint available), then launched configs/four_weather_fast.yaml into checkpoints/four_weather_20261104_fast. All datasets, split membership, 20 epochs and model/loss settings retained. Projected GPU computation is 18.8 hours; actual end-to-end time remains unmeasured.
+
+
+## 2026-11-04T16:35:54+05:30 - Training job
+
+- Training failed: configs/four_weather_fast.yaml; exit code 1; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104_fast. See training.log and status.json for evidence.
+
+## 2026-11-04 - User-requested pause after epoch 3
+
+- Verified latest.pt contains completed epoch 3 and full model/optimizer/scheduler/scaler/RNG state; preserved identical SHA-256 copy as checkpoints/four_weather_20261104_fast/epoch_003.pt.
+- Stopped training process 20980 and its children. Epoch 4 was already in progress; that partial epoch was intentionally discarded to resume from epoch 4 as requested. No dataset changes.
+- Updated run status to paused with completed_epochs=3, next_epoch=4 and the resume command. The launcher's failed exit entry reflects deliberate process termination, not a training error.
+
+
+
+## 2026-11-05T10:06:51+05:30 - Training job
+
+- Started training (resume from D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261104_fast\epoch_003.pt) with configs/four_weather_fast.yaml; PID 26532; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261105_resume. Training and test membership are fixed by the config.
+
+
+## 2026-11-05T16:45:11+05:30 - Preserved epoch 10 checkpoint
+
+- Saved checkpoints/four_weather_20261105_resume/epoch_010.pt; verified completed epoch 10 and identical SHA-256 013b1fb8a5ab2595ff3f58abf5bdd6794c2793fdfff26ddba8dff37cc3ccd8dd. Full training state retained. Training continues without interruption.
+
+
+## 2026-11-05T16:46:03+05:30 - Training job
+
+- Training failed: configs/four_weather_fast.yaml; exit code 1; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261105_resume. See training.log and status.json for evidence.
+
+
+## 2026-11-05T16:46:16.656213+05:30 - User-requested pause after epoch 10
+
+- Stopped training PID 26532 and its workers. Preserved verified epoch_010.pt with full training state. Partial epoch 11 discarded; resume starts at epoch 11. Updated paused status and resume command.
+
+
+## 2026-11-06T10:36:40+05:30 - Training job
+
+- Started training (resume from D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_20261105_resume\epoch_010.pt) with configs/four_weather_fast.yaml; PID 36048; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch11. Training and test membership are fixed by the config.
+
+
+## 2026-11-06T16:21:51+05:30 - Training job
+
+- Training failed: configs/four_weather_fast.yaml; exit code 1; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch11. See training.log and status.json for evidence.
+
+
+## 2026-11-06T16:22:09.816821+05:30 - User-requested pause after epoch 16
+
+- Preserved checkpoints/four_weather_resume_epoch11/epoch_016.pt; verified completed epoch 16, full model/optimizer/scheduler/scaler/RNG state and SHA-256 31103c8918601bccd0a192ec2f0d5fab3a805f2682ede9dfeb898c2facdb74e5.
+- Stopped training PID 36048 and workers; partial epoch 17 discarded. Resume starts at epoch 17 with the same 20-epoch schedule. Supervisor exit code 1 reflects deliberate termination. Resume command recorded in run status.json.
+
+
+## 2026-11-07T11:57:44+05:30 - Training job
+
+- Started training (resume from D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch11\epoch_016.pt) with configs/four_weather_fast.yaml; PID 18536; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch17. Training and test membership are fixed by the config.

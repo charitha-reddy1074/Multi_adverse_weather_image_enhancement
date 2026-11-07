@@ -12,6 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', required=True)
     parser.add_argument('--output', required=True)
+    parser.add_argument('--resume', help='Checkpoint to restore into a new output directory')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = (root / args.output).resolve()
@@ -21,9 +22,14 @@ def main():
         raise FileExistsError(f'Use a new output directory; existing run found: {output}')
     command = [sys.executable, '-B', '-u', str(root / 'train.py'),
                '--config', args.config, '--output', str(output)]
+    if args.resume:
+        checkpoint = (root / args.resume).resolve()
+        if not checkpoint.is_file():
+            raise FileNotFoundError(f'Resume checkpoint missing: {checkpoint}')
+        command.extend(['--resume', str(checkpoint)])
     status = dict(state='starting', started_at=datetime.now().astimezone().isoformat(),
                   config=args.config, output=str(output), command=command,
-                  initialization='fresh; no checkpoint loaded')
+                  initialization=f'resume from {checkpoint}' if args.resume else 'fresh; no checkpoint loaded')
 
     def save():
         temporary = status_path.with_suffix('.tmp')
@@ -44,7 +50,7 @@ def main():
                                        stdout=stream, stderr=subprocess.STDOUT)
             status.update(state='running', pid=process.pid)
             save()
-            log(f'Started fresh training with {args.config}; PID {process.pid}; '
+            log(f'Started training ({status["initialization"]}) with {args.config}; PID {process.pid}; '
                 f'output {output}. Training and test membership are fixed by the config.')
             code = process.wait()
         status.update(state='completed' if code == 0 else 'failed', exit_code=code)
