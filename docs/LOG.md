@@ -228,3 +228,62 @@ being committed/pushed after checks for this update.
 ## 2026-11-07T11:57:44+05:30 - Training job
 
 - Started training (resume from D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch11\epoch_016.pt) with configs/four_weather_fast.yaml; PID 18536; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch17. Training and test membership are fixed by the config.
+
+
+## 2026-11-07T15:46:44+05:30 - Training job
+
+- Training failed: configs/four_weather_fast.yaml; exit code 1; output D:\Multi_adverse_weather_image_enhancement\checkpoints\four_weather_resume_epoch17. See training.log and status.json for evidence.
+- Clarification verified on 2026-11-09: the supervisor labeled the combined training/testing job as failed. All 20/20 training epochs completed and `latest.pt` contains epoch 20 with the configured 20-epoch schedule. The subsequent final-test phase failed in CUDA attention with `RuntimeError: cutlassF: no kernel found to launch!`. This exit code does not mean the saved training was lost or needs to be repeated.
+
+
+## 2026-11-09 - Final-test error diagnosis and repair
+
+- Reproduced the CUDA failure with the saved epoch-20 model on a full-resolution 512 x 384 test image. Channel attention uses the spatial area as its embedding dimension; the selected fused CUDA kernel could not handle this shape.
+- Updated `models/attention.py` to use PyTorch's math SDPA backend for CUDA channel attention, preserving attention scale and model weights. Verified the previously failing image succeeds with the original epoch-20 checkpoint.
+- Added regression coverage for full-resolution CUDA inference and CPU/CUDA channel-attention output and gradient agreement. Verified all 11 attention, model, and training-integration tests pass.
+- Ran a validation smoke check with one real pair from each weather group. This was a diagnostic check, not the full test result. No retraining or test-based model selection was performed.
+
+
+## 2026-11-09 - Full testing and automatic report preparation
+
+- Added `scripts/test_restoration.py` for full-resolution FP32 evaluation of the fixed final checkpoint, with per-image progress saved to disk, resume checks, checkpoint/data/code SHA-256 provenance, and automatic reports. Added matplotlib to `requirements.txt` and installed it in the project virtual environment.
+- Prepared PSNR, SSIM, MAE, MSE, RMSE, loss, inference timing, input-baseline comparisons, and PSNR/SSIM gains overall and by weather. The experiment remains the custom four-weather split; haze is from the pinned unofficial ITS mirror, not an official SOTS benchmark.
+- User explicitly requested auxiliary pixel-error mask scores after clarification that the restoration model does not predict weather classes. Prepared pixel-pooled accuracy, precision, recall, F1, and confusion matrices at fixed thresholds 0.05, 0.10, and 0.20; 0.10 is the primary diagnostic. True mask: mean absolute RGB(input - target) exceeds the threshold. Predicted mask: mean absolute RGB(input - restored) exceeds the threshold. These assess correction locations, not weather classification or restoration success.
+- Prepared PNG/SVG quality-by-weather charts, improvement distributions, baseline comparisons, auxiliary confusion matrices, and worst/median/best examples with output-error heatmaps. These are generated automatically after the complete test set finishes, alongside `summary.json`, `final_test.json`, `report.md`, and `report.html`.
+- Preflight fully decoded all 14,695 input/target pairs, verified matching sizes and test split labels, rejected duplicate test inputs, and checked train/test path and scene separation. The largest padded image shape in every weather group passed inference, metric, and loss checks. Training had previously checked clean-pixel hashes for split leakage.
+- Added two evaluator tests covering known auxiliary-mask counts, undefined scores, complete report generation, resume behavior, and rejection of checkpoint changes. These passed; together with the 11 model/training checks, 13 tests passed. Inspected generated fixture charts to verify rendering; fixture previews were removed and are not real model results.
+- Started the full evaluation at 2026-11-09T10:23:20+05:30 with evaluation PID 14080, using `checkpoints/four_weather_resume_epoch17/latest.pt`. Results are written to `outputs/four_weather_test_epoch20_20261109`; the original failed job history is retained.
+- Test composition: rain 2,520; raindrop 173; snow 10,002; haze 2,000. At 2026-11-09T10:28:10+05:30, 775/14,695 images had completed without a recorded error, at approximately 3.13 images/second. Estimated remaining time at that point was 74 minutes and can vary with image sizes. Full-test scores are pending; see the evaluation's `status.json` and log files for live progress.
+
+- Started scripts/log_evaluation_completion.py to append the evaluation's actual completed/failed outcome to LOG.md automatically when testing ends. This watcher reads status only and does not interrupt evaluation.
+
+
+## 2026-11-09T12:34:55+05:30 - Full model testing completed
+
+- Evaluation output: `outputs/four_weather_test_epoch20_20261109`. Status evidence: `status.json`; logs: `evaluation.stdout.log` and `evaluation.stderr.log`.
+- All 14,695 test images evaluated. Mean restored PSNR: 25.6356 dB; SSIM: 0.805444; mean PSNR gain: +4.9635 dB.
+- Final metrics, auxiliary pixel-mask scores (not weather classification), and visualizations are available in `summary.json`, `final_test.json`, `report.md`, `report.html`, and `visualizations/` within the evaluation output.
+
+
+## 2026-11-09T14:01:40+05:30 - Results README, paper comparison, and measured durations
+
+- Created RESULTS_README.md with verified full-test metrics, per-weather results, auxiliary pixel-mask definitions/scores/confusion matrix, checkpoint/configuration details, visualizations, and measured training/testing durations.
+- Created PAPER_COMPARISON.md comparing the authors' datasets, architecture, settings, published all-in-one scores, hardware, and timing with the completed local experiment. Visually checked supplied PDF pages 5, 7, 8, and 10; did not claim a controlled benchmark or fabricate unreported paper training durations.
+- Verified the actual trained architecture has 612,435 trainable parameters. Final metrics: PSNR 25.635622 dB, SSIM 0.805444, and PSNR gain +4.963452 dB over degraded inputs on 14,695 pairs.
+- Calculated retained training-session wall time as 70,710.027 seconds (19 h 38 min 30 s), including startup/discarded partial epochs/failed final-test attempt; pure training compute is not separately measured. Final testing job took 7,865 seconds (2 h 11 min 5 s). Saved exact calculations in outputs/four_weather_test_epoch20_20261109/duration_summary.json.
+- Generated training-loss PNG/SVG from all 20 completed epoch summaries. Updated README.md and historical training/reproduction-document banners to point to completed results. Verified both new documents' local links, the complete per-image record count, successful evaluation status, chart rendering, and git diff whitespace checks. No model retraining or evaluation rerun was performed for this documentation request.
+
+
+## 2026-11-09T14:09:02+05:30 - Consolidated project Markdown documentation
+
+- Moved root LOG.md, TRAINING_README.md, RESULTS_README.md, and PAPER_COMPARISON.md into docs/. Moved the generated test report to docs/reports/four_weather_test_epoch20_20261109/report.md. Files named README.md remain in their existing locations; existing docs/ organization is preserved.
+- Updated affected Markdown/image links and the browser report's detailed-report link. Updated training/evaluation logging to write docs/LOG.md and report generation to place future project Markdown reports under docs/reports/.
+- Verified all local link targets across 17 main/docs Markdown files, the browser report link, and future report routing. Both evaluator regression tests passed. Original model weights, metrics, and recorded durations were retained.
+
+
+## 2026-11-09T14:25:23+05:30 - Master architecture-to-code and model-lifecycle learning guide
+
+- Created docs/MASTER_ARCHITECTURE_AND_MODEL_LIFECYCLE.md with an 18-section learning path: paper-to-code mapping, directory responsibilities/import aliases, actual trained configuration, encoder/decoder tensor shapes, recurrent priors, Haar transforms, queried attention, DCT/Smooth-L1 objective, data engineering, training/AMP, checkpoint/resume behavior, full evaluation, inference, verification, lifecycle history, measured results/durations, and guide questions.
+- Preserved the distinction between paper-supported topology and implementation assumptions, pooled attention and exact query chunking, model restoration and auxiliary mask metrics, and measured wall time versus pure compute. Included details often missed in explanations: first-prior zero inputs, separate wavelet IDWT branch, replacement sampling, output clamping, and the unweighted orthonormal DCT norm interpretation.
+- Loaded the saved epoch-20 weights for a CPU evaluation-only synthetic 128 x 128 trace; recorded module input/output shapes, attention shapes, three prior routes, and the 612,435-parameter breakdown in docs/architecture/trained_model_trace.json. No weights were updated and no training/full-test run was repeated.
+- Linked the master guide from README.md. Verified every master-guide local link and section anchor, shape/parameter evidence, final result counts/PSNR, a numerical check of the DCT norm explanation, and git diff whitespace checks.

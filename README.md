@@ -1,7 +1,18 @@
 # AIRFormer-inspired weather restoration reconstruction
 
+Start with the [master architecture and model-lifecycle guide](docs/MASTER_ARCHITECTURE_AND_MODEL_LIFECYCLE.md)
+to learn how the paper's ideas map to source files, tensor operations, dataset
+preparation, training, checkpoints, testing, results, and completed project work.
+
+**Completed 9 November 2026:** the custom four-weather experiment trained for
+20 epochs and tested all 14,695 held-out pairs, achieving **25.6356 dB PSNR /
+0.805444 SSIM**, a **+4.9635 dB** gain over degraded inputs. See the
+[results README](docs/RESULTS_README.md) for scores, visualizations, and measured
+durations, and the [paper comparison](docs/PAPER_COMPARISON.md) for what differs from
+the authors' work. The actually trained small model has **612,435 parameters**.
+
 For the prepared four-weather experiment, follow the step-by-step
-[training execution README](TRAINING_README.md). It covers source verification,
+[training execution README](docs/TRAINING_README.md). It covers source verification,
 starting training, monitoring, resuming, and reading the final test results.
 
 **Current status: paper-guided implementation with explicit assumptions.**
@@ -16,7 +27,8 @@ The corrected model passes 70 tests, including CPU/CUDA training and resume.
 All eight local archives are extracted and audited; 58,766 train / 14,695 test
 pairs use the requested custom 80/20 split with no validation set;
 [current dataset status](docs/DATASET_STATUS.md) distinguishes usable training
-pairs, unpaired files and missing releases. Full research training is not complete.
+pairs, unpaired files and missing releases. The custom 20-epoch experiment is
+complete; an exact reproduction of the paper's full experiments is not claimed.
 Historical audit documents and checkpoints describe the earlier architecture.
 
 After training once, load the saved checkpoint for testing/demonstrations;
@@ -39,8 +51,10 @@ Read the [architecture assumptions](docs/architecture_assumptions.md), [dataset 
 
 The local audit environment is installed under `.venv/` with CUDA-enabled PyTorch.
 All local archives are extracted under `data/raw/extracted/`. The requested
-80/20 training/testing manifests are under `data/manifests/available/`. Full training and a useful trained restoration checkpoint are
-not yet available. See `docs/TRAINING_READY.md` for the exact local commands and
+80/20 training/testing manifests used by the completed run are under
+`data/manifests/four_weather/`. The trained epoch-20 checkpoint is
+`checkpoints/four_weather_resume_epoch17/latest.pt`.
+See `docs/TRAINING_READY.md` for the earlier preparation commands and
 `docs/DATASET_STATUS.md` for unavailable all-weather sources. The instructions
 below also describe setup on another machine.
 

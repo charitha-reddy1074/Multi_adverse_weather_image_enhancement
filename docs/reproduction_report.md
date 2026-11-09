@@ -1,6 +1,8 @@
-> Updated 2026-11-02: historical observations below predate the graph corrections.
+> Updated 2026-11-09: the custom 20-epoch four-weather run and full testing are complete.
+> See [final results](RESULTS_README.md) and [paper comparison](PAPER_COMPARISON.md).
+> Historical observations below predate the graph corrections and this completed run.
 > See [current architecture](architecture/README.md), [local dataset audit](LOCAL_DATASET_AUDIT.json)
-> and timestamped [activity log](../LOG.md) for the current state. Old three-stage
+> and timestamped [activity log](LOG.md) for the current state. Old three-stage
 > checkpoints cannot resume the corrected model.
 
 ﻿# Reproduction status - main-paper architecture re-verification

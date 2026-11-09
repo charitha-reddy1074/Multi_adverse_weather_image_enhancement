@@ -1,5 +1,11 @@
 # Train the four-weather model
 
+**Current status, 9 November 2026:** all 20 epochs and the full 14,695-image
+test evaluation are complete. Read [final results and durations](RESULTS_README.md)
+and [the paper comparison](PAPER_COMPARISON.md). The pause/active-run sections
+below are historical instructions; no training job needs to be resumed for the
+completed experiment.
+
 ## Paused after epoch 3 — 4 November 2026
 
 Training was stopped at the user's request. `epoch_003.pt` is a verified copy of
@@ -61,7 +67,7 @@ and SHA-256 hashes in [the Hugging Face mirror](https://huggingface.co/datasets/
 at revision `39300fc7deb9138a59d5489f91a2f86d14d62eb6`. They correspond to
 `val/haze` and `val/clear`. This identifies the mirror content; the mirror is
 unofficial and lists its license as unknown. The original local archive download
-URL is unknown. See [verification evidence](docs/RESIDE_MIRROR_VERIFICATION.json).
+URL is unknown. See [verification evidence](RESIDE_MIRROR_VERIFICATION.json).
 
 This is a custom experiment using all usable local weather sources. It is not an
 exact AIR40K reproduction or a standard RESIDE SOTS evaluation. Additional
@@ -70,9 +76,9 @@ alone has no matching local training haze images. Transmission maps and snow
 masks are auxiliary files and are not RGB restoration targets. The interrupted
 NH-HAZE download is not used.
 
-Source references: [dataset catalog](datasets/sources.csv),
-[download details](datasets/downloads.csv), and
-[local archive hashes](docs/LOCAL_DATASET_AUDIT.json).
+Source references: [dataset catalog](../datasets/sources.csv),
+[download details](../datasets/downloads.csv), and
+[local archive hashes](LOCAL_DATASET_AUDIT.json).
 
 ## 2. Check Python and the GPU
 

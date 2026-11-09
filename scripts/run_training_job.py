@@ -38,7 +38,7 @@ def main():
 
     def log(message):
         stamp = datetime.now().astimezone().isoformat(timespec='seconds')
-        with (root / 'LOG.md').open('a', encoding='utf8') as stream:
+        with (root / 'docs' / 'LOG.md').open('a', encoding='utf8') as stream:
             stream.write(f'\n\n## {stamp} - Training job\n\n- {message}\n')
 
     save()

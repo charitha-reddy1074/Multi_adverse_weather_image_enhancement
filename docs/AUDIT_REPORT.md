@@ -1,6 +1,6 @@
 > Updated 2026-11-02: historical observations below predate the graph corrections.
 > See [current architecture](architecture/README.md), [local dataset audit](LOCAL_DATASET_AUDIT.json)
-> and timestamped [activity log](../LOG.md) for the current state. Old three-stage
+> and timestamped [activity log](LOG.md) for the current state. Old three-stage
 > checkpoints cannot resume the corrected model.
 
 # AIRFormer audit - 2026-10-31

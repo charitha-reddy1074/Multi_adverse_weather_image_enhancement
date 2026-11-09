@@ -1,6 +1,7 @@
 """Paper-guided queried attention; task-query composition remains an assumption."""
 import torch
 from torch import nn
+from torch.nn.attention import SDPBackend, sdpa_kernel
 from torch.utils.checkpoint import checkpoint
 import torch.nn.functional as F
 from .supplementary_prior import dwt2, idwt2
@@ -83,6 +84,14 @@ class QueriedAttention(nn.Module):
         # SDPA computes full attention with softmax over keys without requiring
         # a materialized HW-by-HW matrix on supported CUDA backends.
         def attend(query, key, value):
+            # Channel attention uses HW as the embedding dimension. Full-size
+            # images can exceed CUTLASS kernel limits even though its attention
+            # matrix is only (C/heads)-by-(C/heads). The math backend preserves
+            # the same attention and scale without those fused-kernel limits.
+            if self.mode == "channel" and query.is_cuda:
+                with sdpa_kernel(SDPBackend.MATH):
+                    return F.scaled_dot_product_attention(query, key, value,
+                        dropout_p=0.0, scale=self.dim**-.5)
             return F.scaled_dot_product_attention(query, key, value,
                 dropout_p=0.0, scale=self.dim**-.5)
         count = q.shape[0] * q.shape[1] * q.shape[-2] * k.shape[-2]

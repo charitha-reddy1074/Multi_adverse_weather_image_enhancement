@@ -52,4 +52,4 @@ runtime or FLOPs apply to the chosen widths/strides here.
 
 **Exact reproduction still requires** the supplementary/original model settings,
 query/SP/tail details, loss-reduction clarification and AIR40K membership.
-See [current architecture review](architecture/README.md) and [activity log](../LOG.md).
+See [current architecture review](architecture/README.md) and [activity log](LOG.md).
