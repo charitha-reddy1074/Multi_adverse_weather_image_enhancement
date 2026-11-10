@@ -1,0 +1,6 @@
+Rendered source excerpt from checkpoints/four_weather_resume_epoch17/training.log
+
+7573: epoch=17 train_loss=0.505572; no validation/model selection
+15144: epoch=18 train_loss=0.497068; no validation/model selection
+22716: epoch=19 train_loss=0.498000; no validation/model selection
+30286: epoch=20 train_loss=0.494056; no validation/model selection

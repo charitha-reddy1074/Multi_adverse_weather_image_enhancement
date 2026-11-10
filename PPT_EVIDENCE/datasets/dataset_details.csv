@@ -1,0 +1,5 @@
+﻿weather,dataset,train_pairs,test_pairs,total_pairs,source_evidence,split,limitation
+rain,Rain14000,10080,2520,12600,datasets/sources.csv; scripts/prepare_available_data.py,"Custom grouped 80/20, no validation",Not official AIR40K membership; near duplicates not ruled out
+raindrop,Raindrop,688,173,861,datasets/sources.csv; scripts/prepare_local_archives.py,"Custom grouped 80/20, no validation",Not official AIR40K membership; near duplicates not ruled out
+snow,Snow100K local training archive,39998,10002,50000,datasets/sources.csv; scripts/prepare_local_archives.py,"Custom grouped 80/20, no validation",Not official AIR40K membership; near duplicates not ruled out
+haze,Unofficial RESIDE-ITS mirror val,8000,2000,10000,docs/RESIDE_MIRROR_VERIFICATION.json,"Custom grouped 80/20, no validation",Not official AIR40K membership; near duplicates not ruled out; upstream original haze release unverified

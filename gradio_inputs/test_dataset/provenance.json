@@ -1,0 +1,34 @@
+{
+  "selection": "Selected strong held-out examples for demonstration, not average performance. Haze uses the previously demonstrated scene.",
+  "evaluation": "outputs/four_weather_test_epoch20_20261109/per_image_metrics.csv",
+  "examples": [
+    {
+      "weather": "rain",
+      "test_index": 1183,
+      "input_path": "data/raw/extracted/Rain14000/rainy_image_dataset/training/rainy_image/523_3.jpg",
+      "target_path": "data/raw/extracted/Rain14000/rainy_image_dataset/training/ground_truth/523.jpg",
+      "recorded_psnr_gain_db": 12.055836078911444
+    },
+    {
+      "weather": "raindrop",
+      "test_index": 2431,
+      "input_path": "data/raw/extracted/Raindrop/train/data/686_rain.png",
+      "target_path": "data/raw/extracted/Raindrop/train/gt/686_clean.png",
+      "recorded_psnr_gain_db": 5.562099246995938
+    },
+    {
+      "weather": "snow",
+      "test_index": 3858,
+      "input_path": "data/raw/extracted/Snow100K-training/all/synthetic/city_read_12800.jpg",
+      "target_path": "data/raw/extracted/Snow100K-training/all/gt/city_read_12800.jpg",
+      "recorded_psnr_gain_db": 13.478153514673865
+    },
+    {
+      "weather": "haze",
+      "test_index": 14694,
+      "input_path": "data/raw/extracted/haze-candidates/haze/10997_10_0.8239.png",
+      "target_path": "data/raw/extracted/haze-candidates/clear/10997.png",
+      "recorded_psnr_gain_db": 16.356526298069994
+    }
+  ]
+}

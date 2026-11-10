@@ -158,6 +158,51 @@ tensorboard --logdir checkpoints/runs
 
 ## Inference and evaluation
 
+### Gradio frontend
+
+Install the dependencies and start the local interface:
+
+```powershell
+.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python app.py
+```
+
+Open **http://127.0.0.1:7860**, upload an image, and click **Enhance image**.
+The app defaults to the trained epoch-20 checkpoint at
+`checkpoints/four_weather_resume_epoch17/latest.pt`, loads it once on first use,
+and automatically uses CUDA when available. It displays the input and result,
+model execution time, total processing time, and a downloadable PNG. Saved
+results remain in `outputs/gradio/` until you remove them.
+
+Clickable **Rain**, **Raindrops**, **Snow**, and **Haze** examples load selected
+strong images from the held-out test split. Select one, then click **Enhance
+image** to run the model. These examples demonstrate favorable results rather
+than average performance; selection provenance is in
+`assets/weather_examples/provenance.json`.
+
+All eight demonstration inputs are in **`gradio_inputs/`**: four selected
+held-out images under `test_dataset/` and four downloaded real-world photos
+under `web/`, each covering rain, raindrops, snow, and haze. Both groups are
+selectable in Gradio. Web source credits are included in the folder and UI.
+See [`gradio_inputs/README.md`](gradio_inputs/README.md) for presentation steps.
+
+The default **Full image** mode preserves scene context and matches the
+evaluation protocol. Select 256- or 512-pixel tiles under **Processing options**
+if you need to reduce memory use. Tiling can affect results near boundaries. Output dimensions
+match the uploaded image. No weather selection or retraining is required.
+
+To use another checkpoint, CPU, or port:
+
+```powershell
+.venv/Scripts/python app.py --checkpoint checkpoints/four_weather_resume_epoch17/latest.pt --device cpu --port 7861
+```
+
+The app listens locally without a public share link. Gradio 6 requires
+Pillow below version 13, so the dependency range uses Pillow 12.3 or later
+within that major version.
+
+### Command line
+
 Restore a single image or all images in a folder. The inference script pads symmetrically to dimensions divisible by 128, crops the result back to the original size, and saves an inference-time CSV. Tiling is optional and is an engineering approximation.
 
 ```bash

@@ -1,0 +1,110 @@
+{
+  "epoch": 20,
+  "parameters": 612435,
+  "model_config": {
+    "base_channels": 16,
+    "stage_blocks": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "attention_heads": 2,
+    "max_spatial_tokens": 256,
+    "use_supplementary_prior": true,
+    "use_task_queries": true,
+    "use_frequency_decoder": true,
+    "residual_image": true,
+    "gradient_checkpointing": false,
+    "spatial_kv_pooling": true,
+    "query_combine": "add",
+    "attention_order": [
+      "channel",
+      "space",
+      "wavelet"
+    ],
+    "encoder_token_mixer": "pooling",
+    "decoder_mode": "frequency"
+  },
+  "training_config": {
+    "seed": 42,
+    "epochs": 20,
+    "batch_size": 8,
+    "crop_size": 128,
+    "lr": 0.0002,
+    "min_lr": 1e-06,
+    "weight_decay": 0.0001,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "mixup_prob": 0.5,
+    "lambda_freq": 0.04,
+    "num_workers": 2,
+    "base_channels": 16,
+    "stage_blocks": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "attention_heads": 2,
+    "max_spatial_tokens": 256,
+    "query_combine": "add",
+    "use_supplementary_prior": true,
+    "use_task_queries": true,
+    "use_frequency_decoder": true,
+    "decoder_mode": "frequency",
+    "encoder_token_mixer": "pooling",
+    "residual_image": true,
+    "test_pad_multiple": 128,
+    "dataset_root": "datasets/AIR40K/train",
+    "train_manifest": "data\\manifests\\four_weather\\train.csv",
+    "gradient_accumulation_steps": 1,
+    "mixed_precision": true,
+    "gradient_checkpointing": false,
+    "balance_weather": true,
+    "spatial_kv_pooling": true,
+    "validation_enabled": false,
+    "test_manifest": "data\\manifests\\four_weather\\test.csv"
+  },
+  "hash_checks": {
+    "checkpoint": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\checkpoints\\four_weather_resume_epoch17\\latest.pt",
+      "expected": "523b2f26b123d97e6b139729f378172cb6e46b328c1b9d1d5a6250e69f76403f",
+      "actual": "523b2f26b123d97e6b139729f378172cb6e46b328c1b9d1d5a6250e69f76403f",
+      "matches": true
+    },
+    "test_manifest": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\data\\manifests\\four_weather\\test.csv",
+      "expected": "822a2d6c2abbc2417bb694ab8d134a78fe18939ab9725396754e4bcc17d41d31",
+      "actual": "822a2d6c2abbc2417bb694ab8d134a78fe18939ab9725396754e4bcc17d41d31",
+      "matches": true
+    },
+    "train_manifest": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\data\\manifests\\four_weather\\train.csv",
+      "expected": "55294986de37f0fa663da20d56936d51a0a826f94482f2e9211cca1ac5f2fc3a",
+      "actual": "55294986de37f0fa663da20d56936d51a0a826f94482f2e9211cca1ac5f2fc3a",
+      "matches": true
+    },
+    "evaluator": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\scripts\\test_restoration.py",
+      "expected": "ddca22e553a4a8171a032e4905404dc7a6fd122fbe71e6521fb953d703c7ff27",
+      "actual": "7226149536714bd8257f392901619967565dad0aae65e42141657932a8450fce",
+      "matches": false,
+      "investigation": "Current evaluator differs from recorded evaluation hash. docs/LOG.md 2026-11-09 records later report routing to docs/reports. Original evaluator bytes not available as a verified matching snapshot. Numeric CSV reconciliation and twelve predictions provide separate checks; do not claim all source hashes match."
+    },
+    "attention": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\models\\attention.py",
+      "expected": "818a2b0502bb343c65de36c74767052d16542eb0f32e0048fca575b6c8d3a1b3",
+      "actual": "818a2b0502bb343c65de36c74767052d16542eb0f32e0048fca575b6c8d3a1b3",
+      "matches": true
+    },
+    "inference": {
+      "path": "D:\\Multi_adverse_weather_image_enhancement\\utils\\inference.py",
+      "expected": "6c102ba6dbef220bcd8f005ebb5a9ecbdb2bee6943bdd1a62b64e2e55294bea2",
+      "actual": "6c102ba6dbef220bcd8f005ebb5a9ecbdb2bee6943bdd1a62b64e2e55294bea2",
+      "matches": true
+    }
+  }
+}

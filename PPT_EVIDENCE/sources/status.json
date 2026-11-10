@@ -1,0 +1,20 @@
+{
+  "state": "completed",
+  "pid": 14080,
+  "started_at": "2026-11-09T10:23:20+05:30",
+  "checkpoint": "D:\\Multi_adverse_weather_image_enhancement\\checkpoints\\four_weather_resume_epoch17\\latest.pt",
+  "total": 14695,
+  "weather_counts": {
+    "rain": 2520,
+    "raindrop": 173,
+    "snow": 10002,
+    "haze": 2000
+  },
+  "completed": 14695,
+  "updated_at": "2026-11-09T12:34:10+05:30",
+  "elapsed_seconds": 7807.230104200076,
+  "images_per_second": 1.882229651729426,
+  "remaining_seconds": 0.0,
+  "finished_at": "2026-11-09T12:34:25+05:30",
+  "report": "D:\\Multi_adverse_weather_image_enhancement\\outputs\\four_weather_test_epoch20_20261109\\report.html"
+}

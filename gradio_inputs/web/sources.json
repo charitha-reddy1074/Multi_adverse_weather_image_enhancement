@@ -1,0 +1,71 @@
+[
+  {
+    "weather": "rain",
+    "title": "Street in Fredericia, heavy rain, 2015-07-29-2.jpg",
+    "author": "Szilas",
+    "license": "Public domain",
+    "license_url": "https://commons.wikimedia.org/wiki/Template:PD-self",
+    "source_page": "https://commons.wikimedia.org/wiki/File:Street_in_Fredericia%2C_heavy_rain%2C_2015-07-29-2.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Street_in_Fredericia%2C_heavy_rain%2C_2015-07-29-2.jpg/960px-Street_in_Fredericia%2C_heavy_rain%2C_2015-07-29-2.jpg",
+    "original_size": null,
+    "input_size": [
+      960,
+      640
+    ],
+    "changes": "Converted to RGB PNG and resized proportionally to at most 960 pixels. No enhancement applied to input."
+  },
+  {
+    "weather": "raindrop",
+    "title": "Big raindrops on car window.jpg",
+    "author": "The Eloquent Peasant",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "source_page": "https://commons.wikimedia.org/wiki/File:Big_raindrops_on_car_window.jpg",
+    "download_url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Big_raindrops_on_car_window.jpg",
+    "original_size": [
+      1024,
+      410
+    ],
+    "input_size": [
+      960,
+      384
+    ],
+    "changes": "Converted to RGB PNG and resized proportionally to at most 960 pixels. No enhancement applied to input."
+  },
+  {
+    "weather": "snow",
+    "title": "Beech Avenue with falling snow - geograph.org.uk - 5624558.jpg",
+    "author": "Bob Harvey / Geograph",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source_page": "https://commons.wikimedia.org/wiki/File:Beech_Avenue_with_falling_snow_-_geograph.org.uk_-_5624558.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Beech_Avenue_with_falling_snow_-_geograph.org.uk_-_5624558.jpg/960px-Beech_Avenue_with_falling_snow_-_geograph.org.uk_-_5624558.jpg",
+    "original_size": [
+      960,
+      639
+    ],
+    "input_size": [
+      960,
+      639
+    ],
+    "changes": "Converted to RGB PNG and resized proportionally to at most 960 pixels. No enhancement applied to input."
+  },
+  {
+    "weather": "haze",
+    "title": "Haze in Kuala Lumpur.jpg",
+    "author": "servus / Flickr",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source_page": "https://commons.wikimedia.org/wiki/File:Haze_in_Kuala_Lumpur.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/17/Haze_in_Kuala_Lumpur.jpg/960px-Haze_in_Kuala_Lumpur.jpg",
+    "original_size": [
+      960,
+      720
+    ],
+    "input_size": [
+      960,
+      720
+    ],
+    "changes": "Converted to RGB PNG and resized proportionally to at most 960 pixels. No enhancement applied to input."
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "checked_at": "2026-11-04T07:18:22.840836+00:00",
+  "counts": {
+    "train": {
+      "rain": 10080,
+      "raindrop": 688,
+      "snow": 39998,
+      "haze": 8000
+    },
+    "test": {
+      "rain": 2520,
+      "raindrop": 173,
+      "snow": 10002,
+      "haze": 2000
+    },
+    "official_test": {
+      "rain": 1412
+    }
+  },
+  "totals": {
+    "train": 58766,
+    "test": 14695,
+    "official_test": 1412
+  },
+  "unique_files": 127746,
+  "missing_files": 0,
+  "scene_overlap": 0,
+  "decoded_sample_weather": [
+    "haze",
+    "rain",
+    "raindrop",
+    "snow"
+  ],
+  "scope": "Fresh file-existence, scene-ID and four sample decode checks; prior full decode/pixel identity audit retained; trainer repeats clean-pixel split checks before optimization.",
+  "manifests": {
+    "train": "55294986de37f0fa663da20d56936d51a0a826f94482f2e9211cca1ac5f2fc3a",
+    "test": "822a2d6c2abbc2417bb694ab8d134a78fe18939ab9725396754e4bcc17d41d31",
+    "official_test": "b772b9e057741e33bb151872ae9878cf89f2720ba54c98e37439484c53d77dea"
+  },
+  "haze_mirror_revision": "39300fc7deb9138a59d5489f91a2f86d14d62eb6",
+  "split_policy": "Existing custom 80/20 train/test; no validation; official tests separate."
+}

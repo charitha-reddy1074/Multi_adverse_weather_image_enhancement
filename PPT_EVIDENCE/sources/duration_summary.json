@@ -1,0 +1,35 @@
+{
+  "training_sessions": [
+    {
+      "run": "four_weather_20261104_fast",
+      "started_at": "2026-11-04T13:10:47.472094+05:30",
+      "finished_at": "2026-11-04T16:35:54.068804+05:30",
+      "wall_seconds": 12306.59671
+    },
+    {
+      "run": "four_weather_20261105_resume",
+      "started_at": "2026-11-05T10:06:51.216907+05:30",
+      "finished_at": "2026-11-05T16:46:03.828664+05:30",
+      "wall_seconds": 23952.611757
+    },
+    {
+      "run": "four_weather_resume_epoch11",
+      "started_at": "2026-11-06T10:36:40.083155+05:30",
+      "finished_at": "2026-11-06T16:21:51.743638+05:30",
+      "wall_seconds": 20711.660483
+    },
+    {
+      "run": "four_weather_resume_epoch17",
+      "started_at": "2026-11-07T11:57:44.951584+05:30",
+      "finished_at": "2026-11-07T15:46:44.110053+05:30",
+      "wall_seconds": 13739.158469
+    }
+  ],
+  "training_session_wall_seconds": 70710.02741899999,
+  "training_calendar_seconds": 268556.637959,
+  "test_wall_seconds": 7865.0,
+  "test_loop_seconds": 7807.230104200076,
+  "test_inference_sum_seconds": 5596.09691980097,
+  "test_preflight_seconds": 22.06299670005683,
+  "notes": "Training session wall times include startup, discarded partial epochs, and the original failed final-test attempt. Excludes overnight pauses and abandoned earlier runs. Pure training compute is not separately measured."
+}

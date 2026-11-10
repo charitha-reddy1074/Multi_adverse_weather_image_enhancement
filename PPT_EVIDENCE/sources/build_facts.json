@@ -1,0 +1,10 @@
+{
+  "parameters": 612435,
+  "checkpoint_epoch": 20,
+  "first_loss": 0.864306628704071,
+  "last_loss": 0.49405637383461,
+  "mae_reduction_percent": 49.76804583833556,
+  "positive_psnr_fraction": 0.9239877509356924,
+  "example_count": 12,
+  "source_files": 176
+}

@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "signature": {
+    "checkpoint": "523b2f26b123d97e6b139729f378172cb6e46b328c1b9d1d5a6250e69f76403f",
+    "test_manifest": "822a2d6c2abbc2417bb694ab8d134a78fe18939ab9725396754e4bcc17d41d31",
+    "train_manifest": "55294986de37f0fa663da20d56936d51a0a826f94482f2e9211cca1ac5f2fc3a",
+    "evaluator": "ddca22e553a4a8171a032e4905404dc7a6fd122fbe71e6521fb953d703c7ff27",
+    "attention": "818a2b0502bb343c65de36c74767052d16542eb0f32e0048fca575b6c8d3a1b3",
+    "inference": "6c102ba6dbef220bcd8f005ebb5a9ecbdb2bee6943bdd1a62b64e2e55294bea2"
+  },
+  "pairs": 14695,
+  "weather_counts": {
+    "rain": 2520,
+    "raindrop": 173,
+    "snow": 10002,
+    "haze": 2000
+  },
+  "split_check": "scene and path identities; training previously checked clean-pixel hashes",
+  "decode_check": "all input and target files fully decoded; matching sizes",
+  "largest_shape_smoke": [
+    {
+      "weather": "haze",
+      "index": 12695,
+      "size": [
+        541,
+        407
+      ],
+      "seconds": 0.6555326000088826,
+      "psnr": 20.409430333124273,
+      "ssim": 0.8083407282829285,
+      "loss": 3.1058578491210938
+    },
+    {
+      "weather": "rain",
+      "index": 2086,
+      "size": [
+        480,
+        825
+      ],
+      "seconds": 0.6143709999741986,
+      "psnr": 27.245783099514064,
+      "ssim": 0.891840934753418,
+      "loss": 1.8940626382827759
+    },
+    {
+      "weather": "raindrop",
+      "index": 2310,
+      "size": [
+        720,
+        480
+      ],
+      "seconds": 0.5191620000405237,
+      "psnr": 20.80425586135754,
+      "ssim": 0.805548369884491,
+      "loss": 3.7168965339660645
+    },
+    {
+      "weather": "snow",
+      "index": 2533,
+      "size": [
+        632,
+        640
+      ],
+      "seconds": 0.5370759000070393,
+      "psnr": 23.64244800157897,
+      "ssim": 0.7759819030761719,
+      "loss": 2.8991503715515137
+    }
+  ],
+  "seconds": 22.06299670005683,
+  "finished_at": "2026-11-09T10:24:02+05:30"
+}
